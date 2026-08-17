@@ -45,6 +45,13 @@ const REASONING_CHAIN = [
   "Qwen/Qwen3-VL-235B-A22B-Thinking",
 ];
 
+/**
+ * Per-model deadline for the reasoning stage. Measured: GLM-5.2 answered in
+ * 68s on one run and ran past 600s on another with the same worksheet, so the
+ * spread is wide enough that an unbounded wait is not survivable for a demo.
+ */
+const REASONING_TIMEOUT_MS = 150_000;
+
 const TRANSCRIBE_PROMPT = `Transcribe this worksheet exactly as printed. Preserve the
 problem numbering, every number, and the instructions verbatim. Do not solve
 anything, do not explain, do not translate. If part of the image is unreadable,
@@ -129,12 +136,13 @@ async function reason(
     try {
       const completion = await api.chat.completions.create({
         model,
-        // Generous, because the frontier models here are reasoning models: they
-        // emit a `reasoning` block that counts against max_tokens before any
-        // content. At 4000, GLM-5.2 spent the whole budget thinking and
-        // returned empty content on a real worksheet while still reporting
-        // finish_reason "stop" — a silent truncation with no error.
-        max_tokens: 16000,
+        // Tuned between two measured failure modes. The frontier models here
+        // are reasoning models whose `reasoning` block counts against
+        // max_tokens before any content is written. At 4000, GLM-5.2 spent the
+        // entire budget thinking and returned empty content while still
+        // reporting finish_reason "stop" — a silent truncation. At 16000 it
+        // thought past 600s and never returned at all.
+        max_tokens: 8000,
         messages: [
           { role: "system", content: buildSystemPrompt(req) },
           {
@@ -143,6 +151,12 @@ async function reason(
           },
         ],
         response_format: { type: "json_object" },
+      }, {
+        // A reasoning model with no deadline is a hung demo. GLM-5.2 ran past
+        // 600s on a real worksheet without returning; abandoning it and moving
+        // down the chain is strictly better than making a parent — or a
+        // judge — wait on a model that may never answer.
+        timeout: REASONING_TIMEOUT_MS,
       });
 
       const text = completion.choices[0]?.message?.content;
