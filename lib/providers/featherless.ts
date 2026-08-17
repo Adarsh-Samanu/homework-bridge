@@ -4,23 +4,31 @@ import { extractJson, validateShape } from "../json";
 import type { AnalyzeRequest, WorksheetAnalysis } from "../types";
 
 /**
- * Featherless AI exposes an OpenAI-compatible endpoint, so the official
- * `openai` client works unchanged against their base URL.
+ * Featherless AI, via the OpenAI-compatible endpoint.
  *
- * Two behaviors of theirs shape this file, both verified against the live API:
+ * Three behaviors of the platform shape this file, all verified against the
+ * live API rather than assumed:
  *
  * 1. Strict `json_schema` response format is rejected on their VL models
- *    (Qwen3-VL 4B returns an explicit "request was rejected as invalid").
- *    `json_object` mode works, so the schema is carried in the prompt and the
- *    response is parsed defensively.
+ *    (Qwen3-VL-4B returns an explicit "request was rejected as invalid").
+ *    `json_object` works, so the schema travels in the prompt and the response
+ *    is parsed defensively on the way back.
  *
- * 2. Individual models return "This model is busy, please try again later"
- *    unpredictably — the same model can serve a request and then be busy
- *    seconds later. A demo pinned to one model id will be down when a judge
- *    opens it, so we walk a fallback chain instead.
+ * 2. Any single model can return "This model is busy, please try again later"
+ *    without warning — the same model serves a request and is busy seconds
+ *    later. Pinning the demo to one id means it is down when a judge opens it,
+ *    so every stage walks a fallback chain.
+ *
+ * 3. The strongest models are text-only. A mid-size vision model got the
+ *    arithmetic wrong (claimed 62 - 27 = 55); GLM-5.2 got it right. Since a
+ *    homework helper that confidently states wrong numbers is worse than no
+ *    tool at all, reading and reasoning are split into two stages: a vision
+ *    model only transcribes, and a frontier text model does all the thinking.
+ *    Typed or pasted worksheets skip stage one entirely.
  */
 
-const DEFAULT_MODEL_CHAIN = [
+/** Stage 1 — transcription only. Small models are fine at this. */
+const VISION_CHAIN = [
   "Qwen/Qwen3-VL-32B-Instruct",
   "Qwen/Qwen3-VL-8B-Instruct",
   "Qwen/Qwen2.5-VL-32B-Instruct",
@@ -28,12 +36,24 @@ const DEFAULT_MODEL_CHAIN = [
   "Qwen/Qwen3-VL-4B-Instruct",
 ];
 
-function modelChain(): string[] {
-  const configured = process.env.FEATHERLESS_VISION_MODEL;
-  if (!configured) return DEFAULT_MODEL_CHAIN;
-  // The preferred model leads; the rest of the chain still backs it up.
+/** Stage 2 — the actual reasoning. Correctness lives or dies here. */
+const REASONING_CHAIN = [
+  "zai-org/GLM-5.2",
+  "deepseek-ai/DeepSeek-V4-Pro",
+  "moonshotai/Kimi-K2.5",
+  "MiniMaxAI/MiniMax-M3",
+  "Qwen/Qwen3-VL-235B-A22B-Thinking",
+];
+
+const TRANSCRIBE_PROMPT = `Transcribe this worksheet exactly as printed. Preserve the
+problem numbering, every number, and the instructions verbatim. Do not solve
+anything, do not explain, do not translate. If part of the image is unreadable,
+write [unreadable] in that spot rather than guessing at it.`;
+
+function chainFor(configured: string | undefined, fallback: string[]): string[] {
+  if (!configured) return fallback;
   const preferred = configured.split(",").map((m) => m.trim()).filter(Boolean);
-  return [...preferred, ...DEFAULT_MODEL_CHAIN.filter((m) => !preferred.includes(m))];
+  return [...preferred, ...fallback.filter((m) => !preferred.includes(m))];
 }
 
 function client(): OpenAI {
@@ -46,40 +66,63 @@ function client(): OpenAI {
   return new OpenAI({
     apiKey,
     baseURL: process.env.FEATHERLESS_BASE_URL ?? "https://api.featherless.ai/v1",
-    maxRetries: 0, // we manage retries across the model chain ourselves
+    maxRetries: 0, // retries are handled across the model chain instead
   });
 }
 
 function isTransient(message: string): boolean {
   const m = message.toLowerCase();
-  return (
-    m.includes("busy") ||
-    m.includes("temporarily") ||
-    m.includes("capacity") ||
-    m.includes("overload") ||
-    m.includes("timeout") ||
-    m.includes("503")
+  return ["busy", "temporarily", "capacity", "overload", "timeout", "503"].some((k) =>
+    m.includes(k),
   );
 }
 
-export async function analyzeWithFeatherless(
-  req: AnalyzeRequest,
-): Promise<WorksheetAnalysis> {
-  const api = client();
-  const chain = req.modelOverride ? [req.modelOverride] : modelChain();
+/** Stage 1: photo -> plain text. Skipped when the parent typed the worksheet. */
+async function transcribe(api: OpenAI, req: AnalyzeRequest): Promise<string> {
+  const chain = chainFor(process.env.FEATHERLESS_VISION_MODEL, VISION_CHAIN);
+  const failures: string[] = [];
 
-  const userContent: OpenAI.Chat.ChatCompletionContentPart[] = [
-    { type: "text", text: `${buildUserPrompt(req)}\n\n${JSON_SHAPE_INSTRUCTION}` },
-  ];
-  if (req.imageBase64) {
-    userContent.push({
-      type: "image_url",
-      image_url: {
-        url: `data:${req.imageMediaType ?? "image/jpeg"};base64,${req.imageBase64}`,
-      },
-    });
+  for (const model of chain) {
+    try {
+      const completion = await api.chat.completions.create({
+        model,
+        max_tokens: 1500,
+        messages: [
+          {
+            role: "user",
+            content: [
+              { type: "text", text: TRANSCRIBE_PROMPT },
+              {
+                type: "image_url",
+                image_url: {
+                  url: `data:${req.imageMediaType ?? "image/jpeg"};base64,${req.imageBase64}`,
+                },
+              },
+            ],
+          },
+        ],
+      });
+      const text = completion.choices[0]?.message?.content?.trim();
+      if (text) return text;
+      failures.push(`${model}: empty`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      failures.push(`${model}: ${message}`);
+      if (!isTransient(message)) break;
+    }
   }
+  throw new Error(`Could not read the photo. Tried ${chain.length} models: ${failures.join(" | ")}`);
+}
 
+/** Stage 2: worksheet text -> the full analysis. */
+async function reason(
+  api: OpenAI,
+  req: AnalyzeRequest,
+  worksheet: string,
+): Promise<WorksheetAnalysis> {
+  const chain = req.modelOverride
+    ? [req.modelOverride]
+    : chainFor(process.env.FEATHERLESS_REASONING_MODEL, REASONING_CHAIN);
   const failures: string[] = [];
 
   for (const model of chain) {
@@ -89,7 +132,10 @@ export async function analyzeWithFeatherless(
         max_tokens: 4000,
         messages: [
           { role: "system", content: buildSystemPrompt(req) },
-          { role: "user", content: userContent },
+          {
+            role: "user",
+            content: `Here is the homework:\n\n${worksheet}\n\n${JSON_SHAPE_INSTRUCTION}`,
+          },
         ],
         response_format: { type: "json_object" },
       });
@@ -106,20 +152,23 @@ export async function analyzeWithFeatherless(
         failures.push(`${model}: missing ${missing.join(", ")}`);
         continue;
       }
-
       return parsed as WorksheetAnalysis;
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       failures.push(`${model}: ${message}`);
-      // A non-transient failure (bad request, auth) will repeat on every model,
-      // so stop rather than burning the whole chain on the same error.
-      if (!isTransient(message) && !message.includes("JSON")) {
-        break;
-      }
+      if (!isTransient(message) && !message.includes("JSON")) break;
     }
   }
 
-  throw new Error(
-    `All Featherless models failed. Tried ${chain.length}: ${failures.join(" | ")}`,
-  );
+  throw new Error(`All reasoning models failed. Tried ${chain.length}: ${failures.join(" | ")}`);
+}
+
+export async function analyzeWithFeatherless(
+  req: AnalyzeRequest,
+): Promise<WorksheetAnalysis> {
+  const api = client();
+  const worksheet = req.text?.trim()
+    ? req.text.trim()
+    : await transcribe(api, req);
+  return reason(api, req, worksheet);
 }

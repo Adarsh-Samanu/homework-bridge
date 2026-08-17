@@ -23,13 +23,12 @@ import urllib.request
 ENDPOINT = "http://localhost:3000/api/analyze"
 
 MODELS = [
-    "Qwen/Qwen3-VL-32B-Instruct",          # current baseline
-    "zai-org/GLM-5.2",                     # setup guide's pick
-    "zai-org/GLM-4.7",
-    "deepseek-ai/DeepSeek-V3.2",
-    "moonshotai/Kimi-K2.5",
-    "Qwen/Qwen3-VL-235B-A22B-Thinking",
-    "MiniMaxAI/MiniMax-M2.1",
+    "zai-org/GLM-5.2",                     # setup guide's pick, 753B
+    "deepseek-ai/DeepSeek-V4-Pro",         # 1.6T
+    "moonshotai/Kimi-K3",                  # 2.78T
+    "Qwen/Qwen3-VL-235B-A22B-Thinking",    # strongest that also does vision
+    "MiniMaxAI/MiniMax-M3",
+    "Qwen/Qwen3-VL-32B-Instruct",          # previous baseline, for comparison
 ]
 
 WORKSHEET = """Name: ____________________  Date: __________
