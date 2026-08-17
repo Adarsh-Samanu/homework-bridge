@@ -52,6 +52,17 @@ const REASONING_CHAIN = [
  */
 const REASONING_TIMEOUT_MS = 150_000;
 
+/**
+ * Ceiling for the whole reasoning stage, across every model tried.
+ *
+ * The per-model deadline alone is not enough: five models at 150s each is 750s
+ * worst case, which outlives the serverless function hosting it (maxDuration
+ * 300). The request would be killed mid-chain and the caller would get a
+ * platform timeout instead of the real error. This keeps the chain inside its
+ * own budget so it always returns something explainable.
+ */
+const REASONING_BUDGET_MS = 240_000;
+
 const TRANSCRIBE_PROMPT = `Transcribe this worksheet exactly as printed. Preserve the
 problem numbering, every number, and the instructions verbatim. Do not solve
 anything, do not explain, do not translate. If part of the image is unreadable,
@@ -131,8 +142,16 @@ async function reason(
     ? [req.modelOverride]
     : chainFor(process.env.FEATHERLESS_REASONING_MODEL, REASONING_CHAIN);
   const failures: string[] = [];
+  const deadline = Date.now() + REASONING_BUDGET_MS;
 
   for (const model of chain) {
+    const remaining = deadline - Date.now();
+    // Below ~20s there is no point starting another large model: it will not
+    // finish, and the caller is better served by the accumulated error.
+    if (remaining < 20_000) {
+      failures.push(`(stopped: ${Math.round(REASONING_BUDGET_MS / 1000)}s budget spent)`);
+      break;
+    }
     try {
       const completion = await api.chat.completions.create({
         model,
@@ -156,7 +175,7 @@ async function reason(
         // 600s on a real worksheet without returning; abandoning it and moving
         // down the chain is strictly better than making a parent — or a
         // judge — wait on a model that may never answer.
-        timeout: REASONING_TIMEOUT_MS,
+        timeout: Math.min(REASONING_TIMEOUT_MS, remaining),
       });
 
       const text = completion.choices[0]?.message?.content;

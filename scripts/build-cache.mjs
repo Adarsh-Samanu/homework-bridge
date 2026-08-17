@@ -13,6 +13,49 @@
  */
 import { readFileSync, writeFileSync } from "node:fs";
 import { createHash } from "node:crypto";
+import http from "node:http";
+
+/**
+ * Node's built-in fetch (undici) applies a 300s header timeout that cannot be
+ * raised without pulling in a custom dispatcher, and one of these worksheets
+ * took longer than that to generate — it failed with a bare "fetch failed"
+ * that looked like a network fault rather than a timeout. node:http has no
+ * such default, so requests are made directly.
+ */
+function postJson(endpoint, payload, timeoutMs = 900_000) {
+  return new Promise((resolve, reject) => {
+    const url = new URL(endpoint);
+    const data = JSON.stringify(payload);
+    const req = http.request(
+      {
+        hostname: url.hostname,
+        port: url.port || 80,
+        path: url.pathname,
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Content-Length": Buffer.byteLength(data),
+        },
+      },
+      (res) => {
+        let raw = "";
+        res.setEncoding("utf8");
+        res.on("data", (chunk) => (raw += chunk));
+        res.on("end", () => {
+          try {
+            resolve({ ok: res.statusCode >= 200 && res.statusCode < 300, body: JSON.parse(raw) });
+          } catch {
+            reject(new Error(`non-JSON response (HTTP ${res.statusCode})`));
+          }
+        });
+      },
+    );
+    req.setTimeout(timeoutMs, () => req.destroy(new Error(`timed out after ${timeoutMs / 1000}s`)));
+    req.on("error", reject);
+    req.write(data);
+    req.end();
+  });
+}
 
 const ENDPOINT = process.env.CACHE_ENDPOINT ?? "http://localhost:3000/api/analyze";
 const ATTEMPTS = 3;
@@ -50,17 +93,13 @@ for (const s of samples) {
     process.stdout.write(`  ${s.id} (${s.language}/${s.country}) attempt ${attempt}... `);
     const started = Date.now();
     try {
-      const res = await fetch(ENDPOINT, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          text: s.text,
-          language: s.language,
-          schoolingCountry: s.country,
-          bypassCache: true,
-        }),
+      const res = await postJson(ENDPOINT, {
+        text: s.text,
+        language: s.language,
+        schoolingCountry: s.country,
+        bypassCache: true,
       });
-      const body = await res.json();
+      const body = res.body;
       const secs = ((Date.now() - started) / 1000).toFixed(0);
       if (!res.ok || body.error) {
         console.log(`failed after ${secs}s: ${String(body.error).slice(0, 90)}`);
