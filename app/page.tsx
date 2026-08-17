@@ -99,6 +99,22 @@ export default function Home() {
 
   const canAnalyze = (text.trim().length > 0 || imageBase64 !== null) && !loading;
 
+  /**
+   * Whether this exact combination is pre-rendered.
+   *
+   * Cache keys are text + language + country, so loading a sample and then
+   * changing the language silently drops the request onto the live model,
+   * which can take several minutes. Saying so up front is better than letting
+   * someone sit in front of a spinner wondering what broke.
+   */
+  const matchingSample = SAMPLES.find((s) => s.text.trim() === text.trim());
+  const willBeInstant =
+    !imageBase64 &&
+    matchingSample !== undefined &&
+    matchingSample.suggestedLanguage === language &&
+    matchingSample.suggestedCountry === country;
+  const offFastPath = matchingSample !== undefined && !willBeInstant && !imageBase64;
+
   return (
     <div className="wrap">
       <header>
@@ -193,6 +209,21 @@ export default function Home() {
               ? `Reading the worksheet… ${elapsed}s`
               : "Help me help my child"}
           </button>
+          {!loading && willBeInstant && (
+            <p className="muted" style={{ marginBottom: 0 }}>
+              This sample is pre-rendered — results appear instantly.
+            </p>
+          )}
+          {!loading && offFastPath && (
+            <p className="muted" style={{ marginBottom: 0 }}>
+              You&rsquo;ve changed the language or country for this sample, so it
+              will run live — expect several minutes. Set it back to{" "}
+              {SUPPORTED_LANGUAGES.find(
+                (l) => l.code === matchingSample?.suggestedLanguage,
+              )?.name}{" "}
+              to get the instant version.
+            </p>
+          )}
           {loading && (
             <p className="muted" style={{ marginBottom: 0 }}>
               This can take one to three minutes. The model that does the
