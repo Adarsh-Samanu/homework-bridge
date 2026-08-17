@@ -66,7 +66,7 @@ export async function analyzeWithFeatherless(
   req: AnalyzeRequest,
 ): Promise<WorksheetAnalysis> {
   const api = client();
-  const chain = modelChain();
+  const chain = req.modelOverride ? [req.modelOverride] : modelChain();
 
   const userContent: OpenAI.Chat.ChatCompletionContentPart[] = [
     { type: "text", text: `${buildUserPrompt(req)}\n\n${JSON_SHAPE_INSTRUCTION}` },

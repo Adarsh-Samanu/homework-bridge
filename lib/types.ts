@@ -57,4 +57,10 @@ export interface AnalyzeRequest {
   language: string;
   /** Country whose math methods the parent learned, e.g. "MX", "IN", "VN". */
   schoolingCountry: string;
+  /**
+   * Forces a specific model, bypassing the fallback chain. Exists so the eval
+   * harness can A/B models through the real prompt path rather than a copy of
+   * it that can drift. Not set by the UI.
+   */
+  modelOverride?: string;
 }
