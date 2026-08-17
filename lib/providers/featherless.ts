@@ -129,7 +129,12 @@ async function reason(
     try {
       const completion = await api.chat.completions.create({
         model,
-        max_tokens: 4000,
+        // Generous, because the frontier models here are reasoning models: they
+        // emit a `reasoning` block that counts against max_tokens before any
+        // content. At 4000, GLM-5.2 spent the whole budget thinking and
+        // returned empty content on a real worksheet while still reporting
+        // finish_reason "stop" — a silent truncation with no error.
+        max_tokens: 16000,
         messages: [
           { role: "system", content: buildSystemPrompt(req) },
           {
@@ -142,7 +147,9 @@ async function reason(
 
       const text = completion.choices[0]?.message?.content;
       if (!text) {
-        failures.push(`${model}: empty response`);
+        failures.push(
+          `${model}: empty content (finish_reason=${completion.choices[0]?.finish_reason})`,
+        );
         continue;
       }
 

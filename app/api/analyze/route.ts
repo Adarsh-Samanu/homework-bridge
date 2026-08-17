@@ -3,7 +3,14 @@ import { getProvider } from "@/lib/providers";
 import type { AnalyzeRequest } from "@/lib/types";
 
 export const runtime = "nodejs";
-export const maxDuration = 60;
+
+/**
+ * Real requests measured at 68-110s: a frontier reasoning model thinks for a
+ * while, and a photo adds a transcription call before that. The default
+ * serverless ceiling is well under this, so the demo times out before the
+ * model answers unless the deployment allows a longer duration.
+ */
+export const maxDuration = 300;
 
 export async function POST(request: Request) {
   let body: AnalyzeRequest;
