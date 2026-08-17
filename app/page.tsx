@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { SAMPLES } from "@/lib/samples";
 import { COUNTRY_PROFILES } from "@/lib/methods";
 import { SUPPORTED_LANGUAGES } from "@/lib/prompt";
@@ -15,6 +15,23 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<WorksheetAnalysis | null>(null);
+  const [wasCached, setWasCached] = useState(false);
+  const [elapsed, setElapsed] = useState(0);
+
+  /**
+   * Live analysis runs 70-180s, because a large model has to be loaded on
+   * demand before it can answer. Without a visible clock a long wait is
+   * indistinguishable from a hang, and people close the tab.
+   */
+  useEffect(() => {
+    if (!loading) return;
+    setElapsed(0);
+    const started = Date.now();
+    const id = setInterval(() => {
+      setElapsed(Math.floor((Date.now() - started) / 1000));
+    }, 1000);
+    return () => clearInterval(id);
+  }, [loading]);
 
   function loadSample(id: string) {
     const sample = SAMPLES.find((s) => s.id === id);
@@ -59,6 +76,7 @@ export default function Home() {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error ?? "Something went wrong.");
       setResult(data.analysis as WorksheetAnalysis);
+      setWasCached(Boolean(data.cached));
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong.");
     } finally {
@@ -171,8 +189,17 @@ export default function Home() {
 
         <div style={{ marginTop: "1.1rem" }}>
           <button className="primary" onClick={analyze} disabled={!canAnalyze}>
-            {loading ? "Reading the worksheet…" : "Help me help my child"}
+            {loading
+              ? `Reading the worksheet… ${elapsed}s`
+              : "Help me help my child"}
           </button>
+          {loading && (
+            <p className="muted" style={{ marginBottom: 0 }}>
+              This can take one to three minutes. The model that does the
+              explaining is large and has to start up before it can answer —
+              please leave this tab open.
+            </p>
+          )}
         </div>
       </section>
 
@@ -187,6 +214,7 @@ export default function Home() {
         <section className="card">
           <p className="muted" style={{ marginTop: 0 }}>
             {result.subject} &middot; {result.gradeLevel}
+            {wasCached && " · saved result for this sample worksheet"}
           </p>
           <h2 style={{ marginTop: 0 }}>What they&rsquo;re being asked to do</h2>
           <p>{result.assignment}</p>
