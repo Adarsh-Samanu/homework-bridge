@@ -86,13 +86,35 @@ if (samples.length === 0) {
 }
 console.log(`Parsed ${samples.length} samples\n`);
 
-const out = {};
 const cachePath = new URL("../lib/sample-cache.json", import.meta.url);
+
+/**
+ * Start from whatever is already cached rather than an empty object.
+ *
+ * Each entry costs minutes of live model time, and regenerating all three to
+ * add one means a failure part-way can destroy good entries that took four
+ * minutes each to produce. Existing entries are kept and skipped; set FORCE=1
+ * to regenerate everything deliberately.
+ */
+const out = (() => {
+  try {
+    return JSON.parse(readFileSync(cachePath, "utf8"));
+  } catch {
+    return {};
+  }
+})();
+const FORCE = process.env.FORCE === "1";
+console.log(`${Object.keys(out).length} entries already cached${FORCE ? " (FORCE: regenerating all)" : ""}\n`);
 
 function flush() {
   writeFileSync(cachePath, JSON.stringify(out, null, 2) + "\n");
 }
 for (const s of samples) {
+  const key = cacheKey(s.text, s.language, s.country);
+  if (!FORCE && out[key]) {
+    console.log(`  ${s.id} (${s.language}/${s.country}) already cached — skipping`);
+    continue;
+  }
   let ok = false;
   for (let attempt = 1; attempt <= ATTEMPTS && !ok; attempt++) {
     process.stdout.write(`  ${s.id} (${s.language}/${s.country}) attempt ${attempt}... `);
