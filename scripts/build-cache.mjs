@@ -87,6 +87,11 @@ if (samples.length === 0) {
 console.log(`Parsed ${samples.length} samples\n`);
 
 const out = {};
+const cachePath = new URL("../lib/sample-cache.json", import.meta.url);
+
+function flush() {
+  writeFileSync(cachePath, JSON.stringify(out, null, 2) + "\n");
+}
 for (const s of samples) {
   let ok = false;
   for (let attempt = 1; attempt <= ATTEMPTS && !ok; attempt++) {
@@ -106,6 +111,9 @@ for (const s of samples) {
         continue;
       }
       out[cacheKey(s.text, s.language, s.country)] = body.analysis;
+      // Persist immediately. Each entry can take minutes to generate, so
+      // losing completed work to a later failure (or a Ctrl-C) is expensive.
+      flush();
       console.log(`ok in ${secs}s`);
       ok = true;
     } catch (e) {
@@ -117,8 +125,5 @@ for (const s of samples) {
   }
 }
 
-writeFileSync(
-  new URL("../lib/sample-cache.json", import.meta.url),
-  JSON.stringify(out, null, 2) + "\n",
-);
+flush();
 console.log(`\nWrote ${Object.keys(out).length}/${samples.length} entries to lib/sample-cache.json`);
