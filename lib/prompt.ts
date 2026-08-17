@@ -125,6 +125,36 @@ If the image is too blurry or cropped to read confidently, say so in
 than an admission that the photo needs retaking.`;
 }
 
+/**
+ * Providers that cannot enforce a schema server-side get the shape here
+ * instead. Kept next to the prompt so the two stay in sync; `lib/json.ts`
+ * validates the same key set on the way back in.
+ */
+export const JSON_SHAPE_INSTRUCTION = `Reply with a single JSON object and nothing else — no
+markdown fence, no commentary. Use exactly these keys:
+
+{
+  "subject": string,
+  "gradeLevel": string,
+  "assignment": string,
+  "jargon": [{ "term": string, "meaning": string }],
+  "schoolMethod": {
+    "name": string,
+    "origin": string,
+    "steps": [{ "explanation": string, "notation": string }]
+  },
+  "familiarMethod": {
+    "name": string,
+    "origin": string,
+    "steps": [{ "explanation": string, "notation": string }]
+  },
+  "bridge": string,
+  "notationWarnings": [string],
+  "questionsToAsk": [string]
+}
+
+Every key must be present. Use an empty array rather than omitting a list.`;
+
 export function buildUserPrompt(req: AnalyzeRequest): string {
   if (req.text) {
     return `Here is the homework, typed out:\n\n${req.text}`;
