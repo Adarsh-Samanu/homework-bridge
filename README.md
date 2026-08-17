@@ -51,6 +51,30 @@ These are encoded as curated, checkable facts in [`lib/methods.ts`](lib/methods.
 
 ---
 
+## Why reading and reasoning are two separate models
+
+The first live run got the arithmetic wrong. A mid-size vision model claimed `62 - 27 = 55` — confidently, in Telugu, in the panel a parent is meant to trust. **A homework helper that states wrong numbers is worse than no tool at all**, so this drove the architecture rather than being patched over.
+
+Three findings from testing against the live API, all reproducible with [`eval/run.py`](eval/run.py):
+
+1. **The strongest models on Featherless are text-only.** GLM-5.2, DeepSeek V4, Kimi K3 don't take images.
+2. **A frontier model fixes the arithmetic.** GLM-5.2 solved the same worksheet with every equation correct, in *less* time than the vision model took to get it wrong (68s vs 106s).
+3. **Strict `json_schema` is rejected** on Featherless's VL models — Qwen3-VL-4B returns "request was rejected as invalid". `json_object` works, so the schema travels in the prompt and responses are parsed defensively in [`lib/json.ts`](lib/json.ts).
+
+So the pipeline splits:
+
+```
+photo  ->  vision model (transcribe verbatim, never solve)  ->  text
+                                                                 |
+typed / pasted text  ---------------------------------------->  GLM-5.2  ->  analysis
+```
+
+The vision model is trusted only to copy characters. Every number a parent sees comes from the model that gets numbers right. Typed worksheets skip stage one completely.
+
+**Every stage walks a fallback chain**, because individual Featherless models return "This model is busy, please try again later" unpredictably — the same model can serve a request and be busy seconds later. A demo pinned to a single model id would be down exactly when a judge opens it.
+
+---
+
 ## Built vs. mocked
 
 Being precise about this, per §07 and §11 of the hackathon handbook.
@@ -66,10 +90,12 @@ Being precise about this, per §07 and §11 of the hackathon handbook.
 - Read-aloud via the browser's `SpeechSynthesis` API
 - Sample loading, language/country selection, and error surfacing — **verified in-browser**; TypeScript compiles clean
 
+- **Verified against the live Featherless API**, including the two-stage pipeline and the arithmetic checker in [`eval/run.py`](eval/run.py)
+
 ### Not yet verified end to end
-- **The model call itself has not been run against a live API key.** Both adapters are written and typecheck, but neither has been exercised against a real endpoint yet. Until that happens, the quality of the method comparison is a design claim, not a measured result.
-- **`FEATHERLESS_VISION_MODEL` is unset by default.** It must name an image-capable model from the current Featherless catalog. A text-only id there fails at request time.
-- **Photo OCR of handwritten worksheets is untested** and is the highest-risk part of the build. Printed and typed worksheets are the safer path; the paste-text input exists partly as a fallback.
+- **Photo OCR of handwritten worksheets is untested** and remains the highest-risk part of the build. Printed and typed worksheets are the safer path; the paste-text input exists partly as a fallback, and it skips the vision stage entirely.
+- **Correctness is measured on a small set of worksheets**, not a broad benchmark. GLM-5.2 got every equation right on the subtraction worksheet; that is evidence, not a guarantee.
+- **The Claude adapter is written and typechecks but has never been run** — no Anthropic key was available. Treat `MODEL_PROVIDER=claude` as untested.
 
 ### Deliberately simple
 - **Read-aloud uses browser speech synthesis, not a TTS API.** It's free, works offline, and covers many of these languages — but voice availability varies by device and OS, and some languages will fall back to a default voice or stay silent. A hosted TTS service would be more reliable and would cost money on every request.
@@ -95,7 +121,8 @@ Open http://localhost:3000 and click a sample worksheet — no upload needed.
 |---|---|
 | `MODEL_PROVIDER` | `featherless` (default) or `claude` |
 | `FEATHERLESS_API_KEY` | Featherless key |
-| `FEATHERLESS_VISION_MODEL` | **Required.** An image-capable model id from the Featherless catalog |
+| `FEATHERLESS_REASONING_MODEL` | Stage 2 model. Defaults to `zai-org/GLM-5.2` |
+| `FEATHERLESS_VISION_MODEL` | Stage 1 transcription model. Optional — falls back to a built-in chain |
 | `ANTHROPIC_API_KEY` | Only needed with `MODEL_PROVIDER=claude` |
 
 Switching providers is one environment variable. Both paths satisfy the same JSON Schema, so the UI is unaffected.
@@ -118,7 +145,10 @@ Switching providers is one environment variable. Both paths satisfy the same JSO
 - **Claude Opus 5** (Anthropic), via **Claude Code** — used as a coding assistant for essentially all application code, and for research and drafting of the country method profiles. All method claims were reviewed before inclusion.
 
 **Models the application calls at runtime:**
-- **Featherless AI** (default provider) — serves open-weight models through an OpenAI-compatible API. The specific vision model is set via `FEATHERLESS_VISION_MODEL` and is not hardcoded.
+- **Featherless AI** (default provider), OpenAI-compatible:
+  - `zai-org/GLM-5.2` — stage 2, all reasoning and language output. Configurable via `FEATHERLESS_REASONING_MODEL`.
+  - `Qwen/Qwen3-VL-32B-Instruct` and other Qwen VL models — stage 1, image transcription only. Configurable via `FEATHERLESS_VISION_MODEL`.
+  - Both stages fall back through a chain of alternates when a model reports busy.
 - **Claude Opus 5** (`claude-opus-5`, Anthropic) — alternate provider, selected with `MODEL_PROVIDER=claude`.
 
 **Datasets:**
