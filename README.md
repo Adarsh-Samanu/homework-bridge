@@ -83,7 +83,7 @@ Being precise about this, per §07 and §11 of the hackathon handbook.
 - Next.js app, UI, state, and the full request/response path (`app/page.tsx`, `app/api/analyze/route.ts`)
 - Country method profiles for Mexico/Central America, India, Vietnam, China, Brazil, Philippines (`lib/methods.ts`) — hand-researched, not model-generated
 - Prompt construction with country-specific grounding (`lib/prompt.ts`)
-- Shared JSON Schema driving structured extraction for both providers (`lib/schema.ts`)
+- Structured extraction: a JSON Schema for Claude (`lib/schema.ts`), and the same shape carried in the prompt for Featherless, whose VL models reject strict schema mode (`lib/prompt.ts`, validated by `lib/json.ts`)
 - Provider adapter with two complete implementations — Featherless and Claude (`lib/providers/`)
 - Three preloaded sample worksheets so the demo can be exercised with no upload (`lib/samples.ts`)
 - Photo upload and camera capture, base64-encoded client-side
