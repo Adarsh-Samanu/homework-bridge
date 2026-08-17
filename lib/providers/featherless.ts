@@ -50,7 +50,7 @@ const REASONING_CHAIN = [
  * 68s on one run and ran past 600s on another with the same worksheet, so the
  * spread is wide enough that an unbounded wait is not survivable for a demo.
  */
-const REASONING_TIMEOUT_MS = 150_000;
+const REASONING_TIMEOUT_MS = Number(process.env.REASONING_TIMEOUT_MS ?? 150_000);
 
 /**
  * Ceiling for the whole reasoning stage, across every model tried.
@@ -61,7 +61,21 @@ const REASONING_TIMEOUT_MS = 150_000;
  * platform timeout instead of the real error. This keeps the chain inside its
  * own budget so it always returns something explainable.
  */
-const REASONING_BUDGET_MS = 240_000;
+const REASONING_BUDGET_MS = Number(process.env.REASONING_BUDGET_MS ?? 240_000);
+
+/**
+ * Output budget for the reasoning stage.
+ *
+ * Non-Latin scripts are markedly more expensive here: the Telugu worksheet
+ * exhausted 8000 tokens inside the reasoning block and returned
+ * finish_reason "length" with empty content, while the Spanish and Vietnamese
+ * ones completed comfortably. Raising it fixes Telugu; the per-model deadline
+ * is what keeps a model from thinking forever with the extra room.
+ *
+ * Overridable so cache generation can be generous offline while the deployed
+ * app stays inside its serverless ceiling.
+ */
+const REASONING_MAX_TOKENS = Number(process.env.REASONING_MAX_TOKENS ?? 16_000);
 
 const TRANSCRIBE_PROMPT = `Transcribe this worksheet exactly as printed. Preserve the
 problem numbering, every number, and the instructions verbatim. Do not solve
@@ -155,13 +169,7 @@ async function reason(
     try {
       const completion = await api.chat.completions.create({
         model,
-        // Tuned between two measured failure modes. The frontier models here
-        // are reasoning models whose `reasoning` block counts against
-        // max_tokens before any content is written. At 4000, GLM-5.2 spent the
-        // entire budget thinking and returned empty content while still
-        // reporting finish_reason "stop" — a silent truncation. At 16000 it
-        // thought past 600s and never returned at all.
-        max_tokens: 8000,
+        max_tokens: REASONING_MAX_TOKENS,
         messages: [
           { role: "system", content: buildSystemPrompt(req) },
           {
