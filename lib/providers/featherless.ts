@@ -1,6 +1,7 @@
 import OpenAI from "openai";
 import { buildSystemPrompt, buildUserPrompt, JSON_SHAPE_INSTRUCTION } from "../prompt";
 import { extractJson, validateShape } from "../json";
+import { analyzeFast } from "./featherlessFast";
 import type { AnalyzeRequest, WorksheetAnalysis } from "../types";
 
 /**
@@ -215,8 +216,13 @@ export async function analyzeWithFeatherless(
   req: AnalyzeRequest,
 ): Promise<WorksheetAnalysis> {
   const api = client();
-  const worksheet = req.text?.trim()
-    ? req.text.trim()
-    : await transcribe(api, req);
+  const worksheet = req.text?.trim() ? req.text.trim() : await transcribe(api, req);
+
+  // Fast path by default: three shorter calls, two of them concurrent. The
+  // original single-call path measured 247-458s; it stays available behind
+  // FAST_PATH=off for comparison and as a fallback if quality regresses.
+  if (process.env.FAST_PATH !== "off" && !req.modelOverride) {
+    return analyzeFast(api, req, worksheet);
+  }
   return reason(api, req, worksheet);
 }

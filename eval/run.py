@@ -25,9 +25,9 @@ import os
 LANG = os.environ.get("EVAL_LANG", "te")
 
 MODELS = [
-    "deepseek-ai/DeepSeek-V3.2",           # fast, non-reasoning, cheap
-    "MiniMaxAI/MiniMax-M3",
-    "zai-org/GLM-5.2",                     # reasoning; correct but unpredictable
+    "zai-org/GLM-4.7-Flash",
+    "zai-org/GLM-4.7",
+    "deepseek-ai/DeepSeek-V3.2",
 ]
 
 WORKSHEET = """Name: ____________________  Date: __________
