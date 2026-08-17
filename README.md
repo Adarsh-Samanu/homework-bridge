@@ -95,7 +95,26 @@ Being precise about this, per §07 and §11 of the hackathon handbook.
 ### Not yet verified end to end
 - **Photo OCR of handwritten worksheets is untested** and remains the highest-risk part of the build. Printed and typed worksheets are the safer path; the paste-text input exists partly as a fallback, and it skips the vision stage entirely.
 - **Correctness is measured on a small set of worksheets**, not a broad benchmark. GLM-5.2 got every equation right on the subtraction worksheet; that is evidence, not a guarantee.
+- **Live latency is 70-110s and occasionally far worse.** Uploads and edited worksheets go to the live model and will feel slow. Each model gets a 150s deadline before the chain moves on, so a request fails over rather than hanging forever.
 - **The Claude adapter is written and typechecks but has never been run** — no Anthropic key was available. Treat `MODEL_PROVIDER=claude` as untested.
+
+### Pre-rendered demo worksheets — disclosed
+
+The three sample worksheets are **pre-rendered**. Clicking one returns a stored result instantly instead of calling the model.
+
+Why: latency on this platform is not predictable. The same worksheet on the same model measured **68 seconds once and over 600 seconds another time**, because Featherless loads large models on demand and a 753B model that isn't already resident has to be brought up first. DeepSeek-V3.2 took 103s; MiniMax-M3 returned a 500. No model choice fixes it.
+
+What is and isn't cached:
+
+| Action | Behavior |
+|---|---|
+| Click a sample unmodified | Instant, from cache |
+| Edit one character of a sample | Live model |
+| Change the language or country | Live model |
+| Type or paste your own worksheet | Live model |
+| Upload a photo | Live model (transcribe, then reason) |
+
+The cache is keyed on a hash of worksheet text + language + country, so a hit requires an exact match. **Every stored entry was produced by running the real pipeline** — `npm run build:cache` regenerates them, and nothing is hand-written or edited. This removes the wait, not the work.
 
 ### Deliberately simple
 - **Read-aloud uses browser speech synthesis, not a TTS API.** It's free, works offline, and covers many of these languages — but voice availability varies by device and OS, and some languages will fall back to a default voice or stay silent. A hosted TTS service would be more reliable and would cost money on every request.
