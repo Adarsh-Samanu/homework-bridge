@@ -1,1 +1,74 @@
-{}
+{
+  "0a922cc367c9066c04a20b342748980d": {
+    "subject": "Matemáticas — multiplicación",
+    "gradeLevel": "Cuarto de primaria (aproximadamente)",
+    "assignment": "La tarea pide al niño multiplicar números de dos dígitos por números de un dígito usando un método visual llamado 'modelo de área' o 'método de cajas'. Debe mostrar los productos parciales dentro de cada caja y no puede usar el método tradicional de columna. Al final debe explicar con palabras cómo le ayudaron las cajas a encontrar el resultado.",
+    "jargon": [
+      {
+        "term": "Area model / Box method",
+        "meaning": "Un método visual que usa un rectángulo dividido en cajas. El número de dos dígitos se separa en decenas y unidades, cada parte va arriba de una caja, y el número de un dígito va afuera. Se multiplica cada parte por separado."
+      },
+      {
+        "term": "Partial products",
+        "meaning": "Los resultados intermedios de multiplicar cada parte por separado. Por ejemplo, en 24 x 6, los productos parciales son 120 (de 20 x 6) y 24 (de 4 x 6)."
+      },
+      {
+        "term": "Exit ticket",
+        "meaning": "Una pregunta corta al final de la lección para que el niño explique lo que aprendió, como un boleto de salida."
+      },
+      {
+        "term": "Standard algorithm",
+        "meaning": "El método tradicional de multiplicar en columna, el que usted probablemente aprendió. La tarea prohíbe usarlo y exige el método de cajas."
+      }
+    ],
+    "schoolMethod": {
+      "name": "Modelo de área (método de cajas)",
+      "origin": "Método enseñado en escuelas de EE.UU. para que el niño entienda el valor posicional antes de aprender el algoritmo tradicional.",
+      "steps": [
+        {
+          "explanation": "Separar el número de dos dígitos en decenas y unidades. Por ejemplo, con 32 x 5: el 32 se separa en 30 + 2.",
+          "notation": "32 → 30 + 2"
+        },
+        {
+          "explanation": "Dibujar un rectángulo dividido en dos cajas. Escribir 30 arriba de una caja y 2 arriba de la otra. Escribir 5 afuera, a la izquierda de ambas cajas.",
+          "notation": "      30    |    2\n             |\n 5    ______|______"
+        },
+        {
+          "explanation": "Multiplicar el número de afuera por cada número de arriba y escribir el resultado dentro de cada caja.",
+          "notation": "      30    |    2\n             |\n 5     150   |   10"
+        },
+        {
+          "explanation": "Sumar los dos productos de las cajas para obtener el resultado final.",
+          "notation": "150 + 10 = 160"
+        }
+      ]
+    },
+    "familiarMethod": {
+      "name": "Multiplicación tradicional en columna",
+      "origin": "Método enseñado en México y Centroamérica: el algoritmo estándar de columna que se enseña desde el principio.",
+      "steps": [
+        {
+          "explanation": "Escribir los números en columna, el de dos dígitos arriba y el de un dígito abajo, alineados a la derecha.",
+          "notation": "  32\nx  5\n----"
+        },
+        {
+          "explanation": "Multiplicar 5 x 2 = 10. Escribir el 0 abajo y 'llevar' el 1 (escribirlo pequeño arriba del 3).",
+          "notation": "  1\n  32\nx  5\n----\n   0"
+        },
+        {
+          "explanation": "Multiplicar 5 x 3 = 15, y sumar el 1 que se llevó: 15 + 1 = 16. Escribir 16.",
+          "notation": "  1\n  32\nx  5\n----\n 160"
+        }
+      ]
+    },
+    "bridge": "Los dos métodos hacen exactamente lo mismo: multiplicar las unidades por separado de las decenas. En el modelo de cajas, 2 x 5 = 10 es lo mismo que el primer paso de la columna (5 x 2 = 10). En la columna, el 0 se escribe abajo y el 1 se lleva; en las cajas, el 10 se escribe completo dentro de la caja. Luego, 30 x 5 = 150 en las cajas corresponde a 5 x 3 = 15 en la columna — es el mismo resultado, solo que en la columna el 15 está en la posición de las decenas, por eso vale 150. La única diferencia real es que la columna 'lleva' el 1 y las cajas lo escriben como parte del 10 completo. Si su hijo hace las cajas y usted hace la columna por separado, los resultados deben ser iguales.",
+    "notationWarnings": [
+      "No hay advertencias de notación para esta tarea — los números son enteros y no hay decimales ni divisiones que puedan causar confusión."
+    ],
+    "questionsToAsk": [
+      "En el problema 24 x 6, ¿en qué dos partes separaste el 24 para hacer las cajas?",
+      "Muéstrame qué multiplicaste en cada caja del problema 35 x 4 y cómo encontraste cada resultado.",
+      "¿Qué escribiste en la caja de las decenas del problema 53 x 7? ¿De dónde salió ese número?"
+    ]
+  }
+}
