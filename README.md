@@ -75,6 +75,26 @@ The vision model is trusted only to copy characters. Every number a parent sees 
 
 ---
 
+## Making it fast
+
+The first working version took 247s (Spanish) to 458s (Telugu) per worksheet. It now typically answers in **8-20 seconds**. Nothing about that came from a faster model — that was tested and rejected.
+
+What actually mattered, in order:
+
+**1. Generation time, not start-up.** A warm model answers a trivial request in 0.7-4.6s. The minutes were spent producing tokens sequentially, so output length *is* latency.
+
+**2. Three calls instead of one, two of them concurrent.** One call was doing eight things in sequence. Now a short call reads the sheet and *pins a demo problem*, then the school's method and the parent's method are generated in parallel against that same problem. Total is stage one plus the slower of the two, not the sum. Pinning is what makes the parallelism safe — both panels must work the same problem or the comparison is meaningless.
+
+**3. Capped step counts and sentence length**, as latency controls first.
+
+**4. Reading the answer out of the `reasoning` field.** `GLM-4.7-Flash` answers in ~1s but returns empty `content` in JSON mode at every token budget, putting valid JSON in `reasoning` instead. Skipping it meant falling through to a model 10-20x slower. Handling both fields cut stage 2 from 10.9s/22.1s to 1.6s/5.0s.
+
+Latency is still variable — Telugu measured 17s, 19s, and once 76s on identical input. Non-Latin scripts cost materially more tokens, and shared serverless capacity fluctuates. The demo worksheets are pre-rendered precisely because of that.
+
+Set `FAST_PATH=off` to use the original single-call pipeline, which produces longer worked examples at the old latency.
+
+---
+
 ## Built vs. mocked
 
 Being precise about this, per §07 and §11 of the hackathon handbook.
