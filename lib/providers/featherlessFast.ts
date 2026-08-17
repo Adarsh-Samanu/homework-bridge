@@ -29,7 +29,16 @@ const FAST_MODEL_CHAIN = [
 ];
 
 const PER_CALL_TIMEOUT_MS = Number(process.env.FAST_TIMEOUT_MS ?? 45_000);
-const PER_CALL_MAX_TOKENS = Number(process.env.FAST_MAX_TOKENS ?? 2_000);
+const PER_CALL_MAX_TOKENS = Number(process.env.FAST_MAX_TOKENS ?? 3_000);
+
+/**
+ * Stage 1 returns seven fields (jargon, warnings, three questions, the pinned
+ * problem) where a method call returns three, and these models count their
+ * reasoning against the same budget. At 3000 the brief truncated on the
+ * fastest model and fell through to one taking ~14s, which was the single
+ * largest remaining cost in the request.
+ */
+const BRIEF_MAX_TOKENS = Number(process.env.FAST_BRIEF_MAX_TOKENS ?? 6_000);
 
 function fastChain(): string[] {
   const configured = process.env.FEATHERLESS_FAST_MODEL;
@@ -46,19 +55,25 @@ function isTransient(message: string): boolean {
 }
 
 /** One JSON call, walking the chain until a model returns parseable output. */
+/** Per-stage timings, logged so slow stages can be found rather than guessed at. */
+export interface StageTiming { label: string; model: string; ms: number }
+
 async function call(
   api: OpenAI,
   system: string,
   user: string,
   label: string,
+  timings?: StageTiming[],
+  maxTokens: number = PER_CALL_MAX_TOKENS,
 ): Promise<Record<string, unknown>> {
   const failures: string[] = [];
   for (const model of fastChain()) {
     try {
+      const started = Date.now();
       const completion = await api.chat.completions.create(
         {
           model,
-          max_tokens: PER_CALL_MAX_TOKENS,
+          max_tokens: maxTokens,
           messages: [
             { role: "system", content: system },
             { role: "user", content: user },
@@ -67,12 +82,28 @@ async function call(
         },
         { timeout: PER_CALL_TIMEOUT_MS },
       );
-      const text = completion.choices[0]?.message?.content;
+      const choice = completion.choices[0];
+      /**
+       * Some models here return the answer in `reasoning` and leave `content`
+       * empty — GLM-4.7-Flash does this consistently in JSON mode, at every
+       * token budget, while still reporting finish_reason "stop". The output
+       * is valid JSON, just in the wrong field. Skipping it would discard a
+       * model that answers in ~1s in favour of one taking 10-20s, so read
+       * either field. Not in the SDK types, hence the cast.
+       */
+      const message = choice?.message as
+        | (typeof choice.message & { reasoning?: string })
+        | undefined;
+      const text = message?.content?.trim() || message?.reasoning?.trim();
       if (!text) {
-        failures.push(`${model}: empty (${completion.choices[0]?.finish_reason})`);
+        failures.push(`${model}: empty (${choice?.finish_reason})`);
         continue;
       }
-      return extractJson(text) as Record<string, unknown>;
+      const parsed = extractJson(text) as Record<string, unknown>;
+      // Record only after the parse succeeds: an unparseable reply is a failed
+      // attempt, and logging it as a success made stage timings misleading.
+      timings?.push({ label, model, ms: Date.now() - started });
+      return parsed;
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       failures.push(`${model}: ${message}`);
@@ -98,20 +129,58 @@ function asMethod(raw: Record<string, unknown> | null): MethodExplanation | null
   };
 }
 
+/**
+ * Fallback when stage 1 omits the demo problem.
+ *
+ * The model usually returns one, but not always, and without it the whole
+ * request failed with a 500 — a single missing field taking down an otherwise
+ * good response. So derive one instead: take the first arithmetic expression
+ * on the worksheet and shift its operands, which keeps the shape while
+ * guaranteeing different numbers, so the worked examples still cannot be
+ * copied onto the sheet.
+ */
+export function deriveDemoProblem(worksheet: string): string {
+  const match = worksheet
+    .replace(/,/g, "")
+    .match(/(\d{1,5})\s*([-+x×*÷\/])\s*(\d{1,5})/);
+  if (!match) return "";
+  const [, aRaw, opRaw, bRaw] = match;
+  const a = Number(aRaw);
+  const b = Number(bRaw);
+  const op = opRaw === "*" ? "x" : opRaw === "/" ? "÷" : opRaw;
+
+  // Shift both operands, keeping the result sensible for the operation.
+  if (op === "-") {
+    const newA = a + 7;
+    const newB = Math.min(b + 3, newA - 1);
+    return `${newA} - ${newB}`;
+  }
+  if (op === "÷") {
+    const divisor = b === 0 ? 3 : b;
+    // Keep it a clean-ish division of similar magnitude.
+    return `${(Math.floor(a / divisor) + 4) * divisor + 1} ÷ ${divisor}`;
+  }
+  return `${a + 5} ${op} ${b === 0 ? 3 : b}`;
+}
+
 export async function analyzeFast(
   api: OpenAI,
   req: AnalyzeRequest,
   worksheet: string,
 ): Promise<WorksheetAnalysis> {
   // Stage 1 — short, and it decides the problem both panels will work.
+  const timings: StageTiming[] = [];
   const brief = await call(
     api,
     briefPrompt(req),
     `Here is the homework:\n\n${worksheet}`,
     "reading the worksheet",
+    timings,
+    BRIEF_MAX_TOKENS,
   );
 
-  const demoProblem = String(brief.demoProblem ?? "").trim();
+  const demoProblem =
+    String(brief.demoProblem ?? "").trim() || deriveDemoProblem(worksheet);
   if (!demoProblem) {
     throw new Error("Could not identify a problem to work through on this worksheet.");
   }
@@ -123,14 +192,20 @@ export async function analyzeFast(
       schoolMethodPrompt(req, demoProblem),
       `Work this problem: ${demoProblem}`,
       "the school's method",
+      timings,
     ),
     call(
       api,
       familiarMethodPrompt(req, demoProblem),
       `Work this problem: ${demoProblem}`,
       "your method",
+      timings,
     ).catch(() => null), // the comparison is the bonus; never fail the whole request for it
   ]);
+
+  console.log(
+    "[fast] " + timings.map((t) => `${t.label}=${(t.ms / 1000).toFixed(1)}s(${t.model.split("/").pop()})`).join(" "),
+  );
 
   const jargon = Array.isArray(brief.jargon) ? brief.jargon : [];
 

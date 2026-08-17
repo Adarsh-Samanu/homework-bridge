@@ -19,12 +19,25 @@ import type { AnalyzeRequest } from "./types";
  * latency controls first and readability second.
  */
 
-const BREVITY = `Be brief. At most 3 steps. Each explanation is one sentence of 25 words
-or fewer. Put only the mathematics in "notation" — no prose there.`;
+const BREVITY = `Be brief: at most 3 steps, each explanation one sentence of 25 words or fewer.
+
+"notation" MUST contain the actual arithmetic with real digits — the numbers
+being combined and the result, e.g. "8 - 6 = 2" or the written column layout.
+Never put a bare restatement of the problem there, and never leave it vague.
+Showing the working is the entire point; a step with no numbers in it is
+useless to the parent.`;
 
 function languageRule(lang: string): string {
-  return `Write all prose in ${lang}. Keep mathematics as notation — digits and
-symbols stay in standard written form, never spelled out as words.`;
+  return `Write EVERY piece of prose in ${lang} — including method names, the
+"origin" field, and the bridge. Do not write any of them in English. The parent
+does not read English; an English sentence in the output is a failure, not a
+fallback.
+
+Keep mathematics as notation — digits and symbols stay in standard written
+form, never spelled out as words in ${lang}.
+
+A method's "name" is what the method is called (e.g. the ${lang} for "column
+subtraction"), never a problem or an expression.`;
 }
 
 /** Stage 1: read the sheet, and choose the problem both methods will work. */
