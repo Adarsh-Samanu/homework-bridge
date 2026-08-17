@@ -70,5 +70,79 @@
       "Muéstrame qué multiplicaste en cada caja del problema 35 x 4 y cómo encontraste cada resultado.",
       "¿Qué escribiste en la caja de las decenas del problema 53 x 7? ¿De dónde salió ese número?"
     ]
+  },
+  "45b79ad53078156f0a2a3e60c878da13": {
+    "subject": "Toán — Chia đặt dọc (có dư)",
+    "gradeLevel": "lớp 4",
+    "assignment": "Bài tập yêu cầu con thực hiện ba phép chia dài: 756 ÷ 4, 918 ÷ 6, và 1.245 ÷ 5. Con phải viết đầy đủ các bước tính trong dấu ngoặc chia. Sau khi chia xong, con phải kiểm tra kết quả bằng cách nhân thương số với số chia rồi cộng số dư — kết quả phải bằng số bị chia ban đầu.",
+    "jargon": [
+      {
+        "term": "division bracket",
+        "meaning": "Dấu chia dạng ngoặc mà trường Mỹ dùng: số bị chia nằm trong ngoặc, số chia viết bên trái, thương số viết trên đỉnh. Ở Việt Nam con học cách ghi khác — số chia viết bên phải sau vạch đứng, thương số viết bên dưới."
+      },
+      {
+        "term": "Long Division",
+        "meaning": "Phép chia đặt dọc — chia nhiều chữ số, viết từng bước theo cột. Giống hệt cách chia dọc con học ở Việt Nam, chỉ khác cách sắp xếp trên giấy."
+      },
+      {
+        "term": "r (remainder notation)",
+        "meaning": "Chữ 'r' viết tắt cho 'remainder' (số dư). Ví dụ '187 r 1' nghĩa là thương 187 dư 1. Ở Việt Nam thường viết '187 dư 1' hoặc ghi số dư riêng."
+      }
+    ],
+    "schoolMethod": {
+      "name": "Phép chia dạng ngoặc (US long division bracket)",
+      "origin": "Cách dạy chia dọc ở trường Mỹ: số chia bên trái, số bị chia trong ngoặc, thương số trên đỉnh.",
+      "steps": [
+        {
+          "explanation": "Viết số bị chia 749 trong ngoặc, số chia 4 bên trái. Chia 7 cho 4 được 1, viết 1 trên đỉnh. Nhân 1 × 4 = 4, viết 4 dưới chữ 7. Trừ 7 − 4 = 3.",
+          "notation": "    1\n    ___\n4 |749\n    4\n    -\n    3"
+        },
+        {
+          "explanation": "Mang chữ số 4 xuống để được 34. Chia 34 cho 4 được 8, viết 8 trên đỉnh. Nhân 8 × 4 = 32, viết 32 dưới 34. Trừ 34 − 32 = 2.",
+          "notation": "    18\n    ___\n4 |749\n    4\n    -\n    34\n    32\n    --\n     2"
+        },
+        {
+          "explanation": "Mang chữ số 9 xuống để được 29. Chia 29 cho 4 được 7, viết 7 trên đỉnh. Nhân 7 × 4 = 28, viết 28 dưới 29. Trừ 29 − 28 = 1. Số 1 nhỏ hơn 4 nên là số dư.",
+          "notation": "    187 r1\n    _____\n4 |749\n    4\n    -\n    34\n    32\n    --\n     29\n     28\n     --\n      1"
+        },
+        {
+          "explanation": "Kiểm tra: nhân thương số 187 × số chia 4 = 748. Cộng số dư 1: 748 + 1 = 749. Kết quả bằng số bị chia ban đầu, vậy phép chia đúng.",
+          "notation": "187 × 4 = 748\n748 + 1 = 749 ✓"
+        }
+      ]
+    },
+    "familiarMethod": {
+      "name": "Phép chia đặt dọc (kiểu Việt Nam)",
+      "origin": "Cách chia dọc dạy ở Việt Nam: số bị chia bên trái, số chia bên phải sau vạch đứng, thương số viết bên dưới số chia.",
+      "steps": [
+        {
+          "explanation": "Viết 749 bên trái, vạch đứng, 4 bên phải. Chia 7 cho 4 được 1, viết 1 bên dưới vạch (dưới số 4). Nhân 1 × 4 = 4, viết 4 dưới chữ 7. Trừ 7 − 4 = 3.",
+          "notation": "749 | 4\n4   | 1\n-\n3"
+        },
+        {
+          "explanation": "Mang chữ số 4 xuống để được 34. Chia 34 cho 4 được 8, viết 8 cạnh số 1 bên dưới. Nhân 8 × 4 = 32, viết 32 dưới 34. Trừ 34 − 32 = 2.",
+          "notation": "749 | 4\n4   | 18\n-\n34\n32\n--\n 2"
+        },
+        {
+          "explanation": "Mang chữ số 9 xuống để được 29. Chia 29 cho 4 được 7, viết 7 cạnh số 8 bên dưới. Nhân 7 × 4 = 28, viết 28 dưới 29. Trừ 29 − 28 = 1. Số 1 nhỏ hơn 4 nên là số dư.",
+          "notation": "749 | 4\n4   | 187\n-\n34\n32\n--\n 29\n 28\n --\n  1"
+        },
+        {
+          "explanation": "Kiểm tra: nhân thương số 187 × số chia 4 = 748. Cộng số dư 1: 748 + 1 = 749. Kết quả bằng số bị chia ban đầu, vậy phép chia đúng.",
+          "notation": "187 × 4 = 748\n748 + 1 = 749 ✓"
+        }
+      ]
+    },
+    "bridge": "Hai cách làm giống hệt nhau về phép tính: chia, nhân, trừ, mang số xuống — lặp lại cho từng chữ số. Điểm khác nhau duy nhất là vị trí trên giấy: cách Mỹ đặt số chia bên trái và thương số trên đỉnh; cách Việt Nam đặt số chia bên phải và thương số bên dưới. Khi nhìn vào bài của con, ba mẹ sẽ nhận ra các bước trừ và nhân quen thuộc — chỉ là chúng nằm ở vị trí khác trên trang giấy. Bước kiểm tra (nhân thương số với số chia rồi cộng số dư) hoàn toàn giống nhau trong cả hai cách.",
+    "notationWarnings": [
+      "Trong bài tập, '1,245' dùng dấu phẩy để phân cách hàng nghìn — nghĩa là một nghìn hai trăm bốn mươi lăm. Ở Việt Nam dấu phẩy là dấu thập phân, nên ba mẹ có thể nhầm thành 1,245 (một phẩy hai bốn lăm). Dấu chấm mới là dấu phân cách hàng nghìn ở Việt Nam: 1.245.",
+      "Chữ 'r' trong kết quả (ví dụ '187 r 1') là viết tắt của 'remainder' (số dư), không phải một biến hay phép tính. Ở Việt Nam thường viết 'dư 1' hoặc ghi riêng.",
+      "Dấu ngoặc chia '4 |749' (số chia bên trái) là cách trình bày của Mỹ. Cách Việt Nam viết vạch đứng và số chia bên phải: '749 | 4'."
+    ],
+    "questionsToAsk": [
+      "Ở phép 756 ÷ 4, sau khi chia 7 cho 4 được 1 và trừ còn 3, con mang chữ số nào xuống để tiếp tục?",
+      "Số dư cuối cùng phải nhỏ hơn số nào? Nếu số dư lớn hơn hoặc bằng số đó thì điều gì cho biết phép chia chưa xong?",
+      "Khi con kiểm tra bài 918 ÷ 6, con nhân thương số với 6 rồi cộng số dư — kết quả phải bằng bao nhiêu?"
+    ]
   }
 }
