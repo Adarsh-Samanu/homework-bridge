@@ -63,4 +63,6 @@ export interface AnalyzeRequest {
    * it that can drift. Not set by the UI.
    */
   modelOverride?: string;
+  /** Skips the pre-rendered sample cache. Used by the cache builder. */
+  bypassCache?: boolean;
 }

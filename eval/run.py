@@ -21,14 +21,13 @@ import time
 import urllib.request
 
 ENDPOINT = "http://localhost:3000/api/analyze"
+import os
+LANG = os.environ.get("EVAL_LANG", "te")
 
 MODELS = [
-    "zai-org/GLM-5.2",                     # setup guide's pick, 753B
-    "deepseek-ai/DeepSeek-V4-Pro",         # 1.6T
-    "moonshotai/Kimi-K3",                  # 2.78T
-    "Qwen/Qwen3-VL-235B-A22B-Thinking",    # strongest that also does vision
+    "deepseek-ai/DeepSeek-V3.2",           # fast, non-reasoning, cheap
     "MiniMaxAI/MiniMax-M3",
-    "Qwen/Qwen3-VL-32B-Instruct",          # previous baseline, for comparison
+    "zai-org/GLM-5.2",                     # reasoning; correct but unpredictable
 ]
 
 WORKSHEET = """Name: ____________________  Date: __________
@@ -43,9 +42,13 @@ Remember to regroup from the tens place when you cannot subtract.
 
 Draw your number bond for problem 2 in the space below."""
 
-SUB = re.compile(r"(\d{1,6})\s*[-−]\s*(\d{1,6})\s*=\s*(\d{1,6})")
-MUL = re.compile(r"(\d{1,4})\s*[x×*]\s*(\d{1,4})\s*=\s*(\d{1,7})")
-ADD = re.compile(r"(\d{1,6})\s*\+\s*(\d{1,6})\s*=\s*(\d{1,6})")
+# Negative lookahead: do not match the head of a chained expression like
+# "62 - 27 = 62 - 20 - 7", where the RHS continues into another operator.
+# Without it the checker reports correct decomposition steps as errors.
+TAIL = r"(?!\s*[-−+x×*/\d])"
+SUB = re.compile(r"(\d{1,6})\s*[-−]\s*(\d{1,6})\s*=\s*(\d{1,6})" + TAIL)
+MUL = re.compile(r"(\d{1,4})\s*[x×*]\s*(\d{1,4})\s*=\s*(\d{1,7})" + TAIL)
+ADD = re.compile(r"(\d{1,6})\s*\+\s*(\d{1,6})\s*=\s*(\d{1,6})" + TAIL)
 
 
 def collect_text(node, out):
@@ -77,7 +80,7 @@ def check_arithmetic(analysis):
 def run(model):
     payload = json.dumps({
         "text": WORKSHEET,
-        "language": "te",
+        "language": LANG,
         "schoolingCountry": "IN",
         "modelOverride": model,
     }).encode()
