@@ -1,0 +1,259 @@
+:root {
+  --bg: #fbfaf7;
+  --surface: #ffffff;
+  --border: #e2ded4;
+  --ink: #1c1917;
+  --muted: #6b6459;
+  --accent: #9a4a2f;
+  --accent-soft: #f4ebe5;
+  --school: #2f5d7c;
+  --school-soft: #eaf1f6;
+  --familiar: #5c6f3a;
+  --familiar-soft: #eef2e5;
+  --radius: 10px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #171614;
+    --surface: #201e1b;
+    --border: #38342e;
+    --ink: #f0ede7;
+    --muted: #a39c90;
+    --accent: #d9855f;
+    --accent-soft: #2e241f;
+    --school: #7fb0d1;
+    --school-soft: #1d2830;
+    --familiar: #a3bd72;
+    --familiar-soft: #232a1c;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+.wrap {
+  max-width: 940px;
+  margin: 0 auto;
+  padding: 2.5rem 1.25rem 5rem;
+}
+
+header h1 {
+  font-size: clamp(1.7rem, 4vw, 2.4rem);
+  margin: 0 0 0.4rem;
+  letter-spacing: -0.02em;
+}
+
+header p.lede {
+  margin: 0 0 0.5rem;
+  font-size: 1.05rem;
+  color: var(--muted);
+  max-width: 60ch;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.25rem;
+  margin-top: 1.25rem;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.field {
+  flex: 1 1 200px;
+  min-width: 0;
+}
+
+label {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  margin-bottom: 0.35rem;
+}
+
+select,
+textarea {
+  width: 100%;
+  padding: 0.6rem 0.7rem;
+  font: inherit;
+  font-size: 0.95rem;
+  color: var(--ink);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+textarea {
+  min-height: 150px;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--ink);
+  padding: 0.55rem 0.9rem;
+  transition: background 0.12s ease;
+}
+
+button:hover:not(:disabled) {
+  background: var(--accent-soft);
+}
+
+button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+button.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  font-weight: 600;
+  padding: 0.7rem 1.4rem;
+}
+
+button.primary:hover:not(:disabled) {
+  filter: brightness(1.08);
+  background: var(--accent);
+}
+
+.samples {
+  display: grid;
+  gap: 0.6rem;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.sample {
+  text-align: left;
+  padding: 0.8rem 0.9rem;
+  height: 100%;
+}
+
+.sample strong {
+  display: block;
+  font-size: 0.92rem;
+  margin-bottom: 0.25rem;
+}
+
+.sample span {
+  font-size: 0.82rem;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.methods {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  margin-top: 1rem;
+}
+
+.method {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem;
+}
+
+.method.school {
+  background: var(--school-soft);
+  border-color: var(--school);
+}
+
+.method.familiar {
+  background: var(--familiar-soft);
+  border-color: var(--familiar);
+}
+
+.method h3 {
+  margin: 0 0 0.15rem;
+  font-size: 1rem;
+}
+
+.method .origin {
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin: 0 0 0.75rem;
+}
+
+.step {
+  margin-bottom: 0.7rem;
+}
+
+.step .notation {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 0.9rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.4rem 0.55rem;
+  margin-top: 0.25rem;
+  overflow-x: auto;
+  white-space: pre-wrap;
+}
+
+h2.section {
+  font-size: 1.05rem;
+  margin: 1.75rem 0 0.5rem;
+}
+
+ul.plain {
+  margin: 0;
+  padding-left: 1.15rem;
+}
+
+ul.plain li {
+  margin-bottom: 0.4rem;
+}
+
+.warn {
+  background: var(--accent-soft);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 6px 6px 0;
+  padding: 0.6rem 0.8rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.92rem;
+}
+
+.error {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.muted {
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+footer {
+  margin-top: 3rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.85rem;
+  color: var(--muted);
+}
