@@ -1,62 +1,72 @@
 # Homework Bridge
 
-### A parent who can't read English still can't help with homework after you translate it.
+### My dad always knew how to do my math homework. He just couldn't get it to me.
 
 ---
 
-## Who I built for
+## Who I built this for
 
-Immigrant parents who want to help with their child's homework and can't — and whose children therefore lose homework support at the language line.
+My dad grew up in India. He learned all of this math there — long division, subtraction with borrowing, all of it. He is good at it.
 
-Not parents who can't do the math. **They can do the math.** A parent who finished school in Guadalajara or Hyderabad or Ho Chi Minh City can subtract two-digit numbers. That was never the problem.
+He speaks Telugu. English is hard for him. And I never learned enough Telugu for him to just explain it to me in Telugu instead.
 
-## The barrier
+So when I was in elementary school and middle school and got stuck on a math worksheet, this is what it looked like: I'd be sitting there with the paper, and my dad would be right there, and he *knew the answer* — he'd known it for thirty years — and there was no way for it to get from him to me. He couldn't read the sheet. I couldn't follow his explanation. We were one language apart, at the same table.
 
-The barrier is not language. It's **method**.
+I asked him about it while I was building this. He told me something like this would have really helped him back then — he wanted to teach me the way he had learned it, and he couldn't.
 
-Translate *"solve 62 − 27 using a number bond, then regroup from the tens place"* into perfect Spanish and the parent still cannot help. They were taught column subtraction with borrowing. They have never seen a number bond — and there is no Spanish word for it, because the diagram is US-specific pedagogy, not vocabulary.
+I want to be clear about who is locked out here. **It was me.** I was the kid who didn't get help. But the person you have to actually build for is him, because he was the one holding the thing I needed.
 
-It gets worse than unfamiliar:
+## Why translating it wouldn't have fixed us
 
-- **Long division is written differently.** In Mexico, Vietnam, and Brazil the divisor goes to the *right* and the quotient *below* it. Same arithmetic, unrecognizable page.
-- **`3,5` means three and a half** across most of Latin America. A parent can read the US `3.5` as thirty-five and never know they misread it.
-- **`1,00,000` is one lakh** in India. US digit grouping looks like a typo.
-- **Subtraction itself differs.** Much of Latin America teaches "equal additions," not borrow-and-cross-out. The written work looks nothing alike even when the answers match.
+This took me a while to figure out, and it's the whole reason this isn't just a translation app.
 
-Translation tools stop at the words. TalkingPoints, ParentSquare, ClassDojo, and Google Lens all translate school communication well — and all of them leave this parent exactly where they started.
+Imagine you handed my dad my worksheet, perfectly translated into Telugu. He still couldn't have helped me. Because the sheet said things like:
 
-## What I built
+> *Use a number bond to decompose the second number, then regroup from the tens place.*
 
-Photograph or paste the worksheet, pick your language and where you went to school. You get back, in your language:
+There's no Telugu word for **number bond**. Not because it's a hard translation — because the thing itself doesn't exist in what he learned. It's an American way of teaching. He was taught column subtraction, the one where you cross out and borrow. Translate the sheet and he's just looking at a diagram he's never seen before, now in Telugu. Same wall.
 
-1. **What the assignment is actually asking** — restated, not translated
-2. **The school's method**, worked step by step
-3. **The same problem solved the way *you* learned it** ← nothing else does this
-4. **The bridge** — which of your steps maps to which of theirs, and where they truly diverge
-5. **Notation warnings** — the decimal commas and digit groupings that cause silent misreadings
-6. **Three questions to ask your child** — that check understanding without giving away the answer
+And it's not only the words:
 
-**The worked examples deliberately use different numbers than the assigned problems.** You cannot copy the output onto the sheet. This is built to help a parent help — not to do the homework.
+- **Long division is written in a totally different place on the page** in Mexico, Vietnam, and Brazil — divisor on the right, answer underneath. Same math. Looks like a different subject.
+- **`3,5` means three and a half** in most of Latin America. A parent can read `3.5` as thirty-five and never find out they got it wrong.
+- **`1,00,000` is one lakh** in India. American comma placement looks like a mistake.
+- **`187 r 1`** — that `r` means "remainder." Nothing on the worksheet tells you.
+
+TalkingPoints, ParentSquare, ClassDojo, Google Lens — they all translate school stuff, and they do it well. Every single one of them would have left my dad exactly where he was.
+
+## What it does
+
+You take a picture of the worksheet, or paste it in, and pick your language and the country you went to school in. Then, in your language, you get:
+
+1. **What the homework is actually asking for** — said plainly, not word-for-word translated
+2. **The way the school wants it done**, worked out step by step
+3. **The same problem done the way *you* were taught** ← this is the part that doesn't exist anywhere else
+4. **How the two line up** — which of your steps is which of theirs, and the one place they really differ
+5. **Notation warnings** — the comma and decimal traps above, so you don't misread a number
+6. **Three questions to ask your kid** — that check if they get it without handing them the answer
+
+The worked examples always use **different numbers** than the actual homework. You can't copy them onto the sheet. I did that on purpose — this is for helping your kid, not doing it for them.
+
+> **If you only try one thing: click the third sample — Telugu, India, number bonds.** That's my dad's exact situation. That's the one I built this for.
 
 ## How it works
 
+You point it at a worksheet, and two different models split the job:
+
 ```
-photo ──> vision model (transcribes only, never solves) ──┐
-                                                          ├──> GLM-5.2 ──> analysis
-typed / pasted worksheet ─────────────────────────────────┘
+photo ──> a vision model (only copies the text down, never solves) ──┐
+                                                                     ├──> GLM-5.2 ──> your answer
+typed or pasted worksheet ───────────────────────────────────────────┘
 ```
 
-Two engineering decisions carry the project:
+**I had to look up how math is actually taught in other countries.** I couldn't just ask the model — when I did, it gave vague, inconsistent answers. So I wrote the real differences down myself, country by country, in `lib/methods.ts`. That file is honestly the heart of this project. It's why the comparison is specific enough to trust.
 
-**Country method knowledge is curated, not improvised.** `lib/methods.ts` encodes specific, checkable differences in how six countries teach arithmetic. A general model knows these differences exist but describes them vaguely and inconsistently. Grounding the prompt in real facts is what makes the side-by-side trustworthy enough to hand a parent.
+**And I had to stop letting one model do everything.** My first working version told a Telugu-speaking parent that `62 − 27 = 55`. Confidently. In the exact panel a parent is supposed to trust. That scared me — a homework helper that gets numbers wrong is worse than no homework helper at all, because now the parent looks wrong in front of their kid. So I split it up: the vision model is only allowed to copy the worksheet down, and a much stronger model does all the actual thinking. Then I wrote `eval/run.py`, which re-does every single equation the model writes and fails it if anything is off. The three demo worksheets pass — 8, 16, and 8 equations checked, zero wrong.
 
-**Reading and reasoning are separate models.** The first live run had a mid-size vision model confidently claim `62 − 27 = 55` — in Telugu, in the panel a parent is meant to trust. A homework helper that states wrong numbers is worse than no tool at all. So the vision model was demoted to transcription only, and a frontier model (GLM-5.2) does every piece of reasoning. It got the same worksheet completely right, in less time.
+## Where it's honest about itself
 
-Correctness isn't eyeballed — `eval/run.py` re-computes every equation the model writes and fails the run on any mismatch.
-
-## Honest status
-
-Works end to end against the live API. Typed and pasted worksheets are solid. Photo transcription of **handwritten** work is the weakest part and is documented as such. Correctness is measured on a small set of worksheets, not a broad benchmark.
+It works. The three sample worksheets are saved ahead of time so it's instant for you; anything else — your own worksheet, a sample you edited, a different language — runs live and takes one to three minutes, because the big model has to wake up first. Handwritten worksheets are the shakiest part. All of that is written down in the README, not hidden.
 
 ---
 
