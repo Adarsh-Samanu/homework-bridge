@@ -12,6 +12,7 @@ export default function Home() {
   const [country, setCountry] = useState("MX");
   const [imageBase64, setImageBase64] = useState<string | null>(null);
   const [imageMediaType, setImageMediaType] = useState<string | null>(null);
+  const [imageKb, setImageKb] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<WorksheetAnalysis | null>(null);
@@ -45,16 +46,67 @@ export default function Home() {
     setError(null);
   }
 
+  /**
+   * Downscale and re-encode the photo before sending.
+   *
+   * The previous version walked the raw file bytes and called btoa() on the
+   * result, which fails outright on Safari for a large photo ("The string did
+   * not match the expected pattern") and, when it did work, produced a
+   * multi-megabyte base64 payload — slow to upload and slow for the vision
+   * model to read.
+   *
+   * Canvas re-encoding fixes all of that at once: a worksheet is text on
+   * paper, so 1600px on the long edge is plenty to read it, and JPEG at 0.85
+   * typically lands under 400KB.
+   */
   async function onFile(file: File) {
-    const buffer = await file.arrayBuffer();
-    let binary = "";
-    const bytes = new Uint8Array(buffer);
-    for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
-    setImageBase64(btoa(binary));
-    setImageMediaType(file.type || "image/jpeg");
-    setText("");
-    setResult(null);
     setError(null);
+    setResult(null);
+    try {
+      const dataUrl = await downscaleToJpeg(file, 1600, 0.85);
+      const [, base64] = dataUrl.split(",");
+      setImageBase64(base64);
+      setImageMediaType("image/jpeg");
+      setImageKb(Math.round((base64.length * 3) / 4 / 1024));
+      setText("");
+    } catch {
+      // Most commonly an iPhone HEIC on a browser that cannot decode it.
+      setError(
+        "Could not read that image. If it came from an iPhone it may be in HEIC format — " +
+          "take a screenshot of it, or set the camera to \u201CMost Compatible\u201D, and try again.",
+      );
+    }
+  }
+
+  function downscaleToJpeg(
+    file: File,
+    maxEdge: number,
+    quality: number,
+  ): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+        const scale = Math.min(1, maxEdge / Math.max(img.width, img.height));
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.round(img.width * scale);
+        canvas.height = Math.round(img.height * scale);
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return reject(new Error("no 2d context"));
+        // White backdrop: JPEG has no alpha, and a transparent PNG would
+        // otherwise flatten to black and hide the worksheet entirely.
+        ctx.fillStyle = "#fff";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL("image/jpeg", quality));
+      };
+      img.onerror = () => {
+        URL.revokeObjectURL(url);
+        reject(new Error("decode failed"));
+      };
+      img.src = url;
+    });
   }
 
   async function analyze() {
@@ -199,7 +251,11 @@ export default function Home() {
                 if (file) void onFile(file);
               }}
             />
-            {imageBase64 && <span className="muted">Photo attached.</span>}
+            {imageBase64 && (
+              <span className="muted">
+                Photo attached{imageKb !== null && ` — resized to ${imageKb} KB`}.
+              </span>
+            )}
           </div>
         </div>
 
