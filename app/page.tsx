@@ -137,16 +137,59 @@ export default function Home() {
   }
 
   /**
-   * Browser speech synthesis rather than a TTS API: it is free, works offline,
-   * and covers many of these languages. Voice availability varies by device, so
-   * this is a real feature with a real caveat, not a stub — see the README.
+   * Voices load asynchronously and the first getVoices() call is often empty,
+   * so they are fetched once on mount and refreshed when the browser fires
+   * voiceschanged.
    */
+  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.speechSynthesis) return;
+    const load = () => setVoices(window.speechSynthesis.getVoices());
+    load();
+    window.speechSynthesis.addEventListener("voiceschanged", load);
+    return () => window.speechSynthesis.removeEventListener("voiceschanged", load);
+  }, []);
+
+  /**
+   * The device decides which languages can be spoken, and the gaps fall
+   * exactly where this tool is most needed: macOS ships no Telugu voice at
+   * all, nor Gujarati, Bengali, Marathi, Punjabi, Malayalam, Kannada, Urdu,
+   * Tagalog or Haitian Creole.
+   *
+   * Setting `lang` alone is not enough — with no matching voice a browser will
+   * happily read Telugu text aloud in an English voice, which is worse than
+   * silence. So the voice is resolved explicitly, and when there isn't one we
+   * say so instead of leaving a button that appears to do nothing.
+   */
+  const voiceForLanguage = voices.find((v) =>
+    v.lang.toLowerCase().startsWith(language.toLowerCase()),
+  );
+
   function speak(content: string) {
     if (typeof window === "undefined" || !window.speechSynthesis) return;
+    if (!voiceForLanguage) return;
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(content);
-    utterance.lang = language;
+    utterance.voice = voiceForLanguage;
+    utterance.lang = voiceForLanguage.lang;
+    utterance.rate = 0.95; // a touch slower: this is unfamiliar material
     window.speechSynthesis.speak(utterance);
+  }
+
+  const languageName =
+    SUPPORTED_LANGUAGES.find((l) => l.code === language)?.name ?? language;
+
+  function ReadAloud({ text: content }: { text: string }) {
+    if (voiceForLanguage) {
+      return <button onClick={() => speak(content)}>Read aloud</button>;
+    }
+    return (
+      <p className="muted" style={{ marginBottom: 0 }}>
+        Your device has no {languageName} voice installed, so this can&rsquo;t be
+        read aloud here. Android and Google Chrome cover more languages than
+        macOS does.
+      </p>
+    );
   }
 
   const canAnalyze = (text.trim().length > 0 || imageBase64 !== null) && !loading;
@@ -305,7 +348,7 @@ export default function Home() {
           </p>
           <h2 style={{ marginTop: 0 }}>What they&rsquo;re being asked to do</h2>
           <p>{result.assignment}</p>
-          <button onClick={() => speak(result.assignment)}>Read aloud</button>
+          <ReadAloud text={result.assignment} />
 
           <div className="methods">
             <div className="method school">
@@ -337,7 +380,7 @@ export default function Home() {
             <>
               <h2 className="section">How the two line up</h2>
               <p>{result.bridge}</p>
-              <button onClick={() => speak(result.bridge!)}>Read aloud</button>
+              <ReadAloud text={result.bridge!} />
             </>
           )}
 
@@ -369,9 +412,7 @@ export default function Home() {
               <li key={i}>{q}</li>
             ))}
           </ul>
-          <button onClick={() => speak(result.questionsToAsk.join(". "))}>
-            Read aloud
-          </button>
+          <ReadAloud text={result.questionsToAsk.join(". ")} />
         </section>
       )}
 
