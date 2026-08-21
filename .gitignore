@@ -6,3 +6,8 @@ out/
 .DS_Store
 *.tsbuildinfo
 next-env.d.ts
+
+# LaTeX build artifacts
+*.aux
+*.log
+*.out

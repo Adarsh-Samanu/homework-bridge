@@ -1,0 +1,118 @@
+% Homework Bridge --- one-pager
+% Suvidha International Foundation AI Virtual Hackathon 2026
+% Build with:  pdflatex ONEPAGER.tex
+\documentclass[9pt,letterpaper]{extarticle}
+
+\usepackage[margin=0.5in,top=0.42in,bottom=0.42in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{charter}
+\usepackage{xcolor}
+\usepackage{multicol}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{parskip}
+\usepackage{microtype}
+\usepackage[hidelinks]{hyperref}
+
+\definecolor{ink}{HTML}{1C1917}
+\definecolor{accent}{HTML}{9A4A2F}
+\definecolor{muted}{HTML}{6B6459}
+\definecolor{rule}{HTML}{D9D2C5}
+\definecolor{schoolbg}{HTML}{EAF1F6}
+\definecolor{homebg}{HTML}{EEF2E5}
+
+\color{ink}
+\pagestyle{empty}
+\setlength{\columnsep}{16pt}
+
+\titleformat{\section}{\bfseries\large\color{accent}}{}{0pt}{}
+\titlespacing*{\section}{0pt}{7pt}{2pt}
+
+\newcommand{\headline}[1]{{\fontsize{15}{18}\selectfont\bfseries\itshape #1\par}}
+
+\begin{document}
+
+%% ---------- masthead ----------
+{\fontsize{26}{28}\selectfont\bfseries Homework Bridge\par}
+\vspace{2pt}
+{\color{accent}\rule{\textwidth}{1.2pt}}
+\vspace{5pt}
+
+\headline{My dad always knew how to do my math homework. He just couldn't get it to me.}
+\vspace{4pt}
+
+\begin{multicols}{2}
+
+\section*{Who I built this for}
+
+My dad grew up in India. He learned all of this math there --- long division, subtraction with borrowing, all of it. He is good at it.
+
+He speaks Telugu. English is hard for him. And I never learned enough Telugu for him to just explain it to me in Telugu instead.
+
+So when I was in elementary school and middle school and got stuck on a math worksheet, this is what it looked like: I'd be sitting there with the paper, and my dad would be right there, and he \emph{knew the answer} --- and there was no way for it to get from him to me. He couldn't read the sheet. I couldn't follow his explanation. We were one language apart, at the same table.
+
+I asked him about it while I was building this. He told me something like this would have really helped him back then --- he wanted to teach me the way he had learned it, and he couldn't.
+
+I want to be clear about who is locked out here. \textbf{It was me.} I was the kid who didn't get help. But the person you have to actually build for is him, because he was the one holding the thing I needed.
+
+\section*{Why translating it wouldn't have fixed us}
+
+Imagine you handed my dad my worksheet, perfectly translated into Telugu. He still couldn't have helped me. Because the sheet said things like:
+
+\vspace{3pt}
+{\color{muted}\itshape ``Use a number bond to decompose the second number, then regroup from the tens place.''}
+\vspace{3pt}
+
+There is no Telugu word for \textbf{number bond}. Not because it's a hard translation --- because the thing itself doesn't exist in what he learned. It's an American way of teaching. He was taught column subtraction, the one where you cross out and borrow. Translate the sheet and he's just looking at a diagram he has never seen, now in Telugu. Same wall.
+
+And it isn't only the words:
+
+\begin{itemize}[leftmargin=11pt,itemsep=1.5pt,topsep=3pt]
+  \item \textbf{Long division sits somewhere else on the page} in Mexico, Vietnam, and Brazil --- divisor on the right, answer underneath. Same math, looks like a different subject.
+  \item \textbf{\texttt{3,5} means three and a half} in most of Latin America. A parent can read \texttt{3.5} as thirty-five and never find out.
+  \item \textbf{\texttt{1,00,000} is one lakh} in India. American comma placement looks like a mistake.
+  \item \textbf{\texttt{187 r 1}} --- that \texttt{r} means ``remainder.'' Nothing on the sheet says so.
+\end{itemize}
+
+TalkingPoints, ParentSquare, ClassDojo, Google Lens --- they all translate school communication, and they do it well. Every one of them would have left my dad exactly where he was.
+
+\section*{What it does}
+
+Photograph the worksheet or paste it in, pick your language and the country you went to school in. Then, in your language:
+
+\begin{enumerate}[leftmargin=13pt,itemsep=1.5pt,topsep=3pt]
+  \item \textbf{What the homework is actually asking} --- said plainly, not word-for-word
+  \item \textbf{The way the school wants it done}, step by step
+  \item \textbf{The same problem done the way \emph{you} were taught} $\leftarrow$ the part nothing else does
+  \item \textbf{How the two line up}, and the one place they really differ
+  \item \textbf{Notation warnings} --- the comma and decimal traps above
+  \item \textbf{Three questions to ask your kid} that check understanding without giving away the answer
+\end{enumerate}
+
+Worked examples always use \textbf{different numbers} than the real homework, so you can't copy them onto the sheet. That's deliberate: this helps a parent help, it doesn't do the homework.
+
+\vspace{3pt}
+{\color{accent}\textbf{Try the third sample --- Telugu, India, number bonds.} That is my dad's exact situation, and the reason this exists.}
+
+\section*{How I built it}
+
+\textbf{I had to look up how math is actually taught in other countries.} Asking the model gave vague, inconsistent answers, so I wrote the real differences down myself, country by country, in \texttt{lib/methods.ts}. That file is the heart of this.
+
+\textbf{Then I had to stop letting one model do everything.} My first working version told a Telugu-speaking parent that $62-27=55$. Confidently. In the exact panel a parent is meant to trust. A homework helper that gets numbers wrong is worse than none at all --- now the parent looks wrong in front of their kid.
+
+So I split the job. A vision model is only allowed to copy the worksheet down; a much stronger model (GLM-5.2) does all the thinking. Then I wrote \texttt{eval/run.py}, which re-computes every equation the model writes and fails the run on any mismatch. The three demo worksheets pass: 8, 16, and 8 equations checked, zero wrong.
+
+\section*{Where it's honest about itself}
+
+It works. The three samples are saved ahead of time so they're instant; anything else --- your own worksheet, an edited sample, another language --- runs live and takes one to three minutes while the big model wakes up. Handwritten worksheets are the shakiest part. All of that is in the README rather than hidden.
+
+\end{multicols}
+
+\vspace{2pt}
+{\color{rule}\rule{\textwidth}{0.5pt}}
+\vspace{2pt}
+
+\noindent{\small\color{muted}\textbf{Demo:} \underline{\hspace{2.2in}} \quad\textbullet\quad \textbf{Repo:} github.com/Adarsh-Samanu/homework-bridge \hfill Suvidha AI Virtual Hackathon 2026}
+
+\end{document}
