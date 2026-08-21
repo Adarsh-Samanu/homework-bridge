@@ -3,7 +3,7 @@
 % Build with:  pdflatex ONEPAGER.tex
 \documentclass[9pt,letterpaper]{extarticle}
 
-\usepackage[margin=0.5in,top=0.42in,bottom=0.42in]{geometry}
+\usepackage[margin=0.46in,top=0.38in,bottom=0.36in]{geometry}
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
 \usepackage{charter}
@@ -27,7 +27,7 @@
 \setlength{\columnsep}{16pt}
 
 \titleformat{\section}{\bfseries\large\color{accent}}{}{0pt}{}
-\titlespacing*{\section}{0pt}{7pt}{2pt}
+\titlespacing*{\section}{0pt}{5pt}{2pt}
 
 \newcommand{\headline}[1]{{\fontsize{15}{18}\selectfont\bfseries\itshape #1\par}}
 
@@ -40,7 +40,10 @@
 \vspace{5pt}
 
 \headline{My dad always knew how to do my math homework. He just couldn't get it to me.}
-\vspace{4pt}
+\vspace{3pt}
+
+\noindent{\footnotesize\color{muted}\textbf{AI disclosure:} The story and the conversation with my dad are mine. I used Claude (Anthropic) to help organize and polish the writing --- the same assistant disclosed in the README for the code.}
+\vspace{3pt}
 
 \begin{multicols}{2}
 
