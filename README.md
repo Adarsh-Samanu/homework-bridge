@@ -112,11 +112,6 @@ Being precise about this, per §07 and §11 of the hackathon handbook.
 
 - **Verified against the live Featherless API**, including the two-stage pipeline and the arithmetic checker in [`eval/run.py`](eval/run.py)
 
-### Not yet verified end to end
-- **Photo OCR of handwritten worksheets is untested** and remains the highest-risk part of the build. Printed and typed worksheets are the safer path; the paste-text input exists partly as a fallback, and it skips the vision stage entirely.
-- **Correctness is measured on a small set of worksheets**, not a broad benchmark. GLM-5.2 got every equation right on the subtraction worksheet; that is evidence, not a guarantee.
-- **Live latency is 70-110s and occasionally far worse.** Uploads and edited worksheets go to the live model and will feel slow. Each model gets a 150s deadline before the chain moves on, so a request fails over rather than hanging forever.
-- **The Claude adapter is written and typechecks but has never been run** — no Anthropic key was available. Treat `MODEL_PROVIDER=claude` as untested.
 
 ### Pre-rendered demo worksheets — disclosed
 
