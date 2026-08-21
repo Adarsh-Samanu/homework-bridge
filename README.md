@@ -1,5 +1,7 @@
 # Homework Bridge
 
+**Live demo: https://homework-bridge-rho.vercel.app**
+
 **A parent who can't read English still can't help with homework after you translate it.**
 
 That's the assumption this project rejects. Translate *"solve 24 × 6 using the box method and show your partial products"* into Spanish and the parent still can't help — not because of the words, but because they were taught column multiplication and have never seen a grid. They can do this math. They've been locked out of it by a method.

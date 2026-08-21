@@ -19,28 +19,25 @@
 \definecolor{accent}{HTML}{9A4A2F}
 \definecolor{muted}{HTML}{6B6459}
 \definecolor{rule}{HTML}{D9D2C5}
-\definecolor{schoolbg}{HTML}{EAF1F6}
-\definecolor{homebg}{HTML}{EEF2E5}
+\definecolor{band}{HTML}{F4EBE5}
 
 \color{ink}
 \pagestyle{empty}
-\setlength{\columnsep}{16pt}
+\setlength{\columnsep}{15pt}
 
 \titleformat{\section}{\bfseries\large\color{accent}}{}{0pt}{}
 \titlespacing*{\section}{0pt}{4pt}{1pt}
-
-\newcommand{\headline}[1]{{\fontsize{13.5}{16}\selectfont\bfseries\itshape #1\par}}
 
 \begin{document}
 
 %% ---------- masthead ----------
 {\fontsize{23}{25}\selectfont\bfseries Homework Bridge\par}
-\vspace{2pt}
+\vspace{1pt}
 {\color{accent}\rule{\textwidth}{1.2pt}}
-\vspace{5pt}
+\vspace{4pt}
 
-\headline{My dad always knew how to do my math homework. He just couldn't get it to me.}
-\vspace{3pt}
+{\fontsize{13}{15}\selectfont\bfseries\itshape My dad always knew how to do my math homework. He just couldn't get it to me.\par}
+\vspace{5pt}
 
 \noindent\colorbox{accent}{\parbox{\dimexpr\textwidth-2\fboxsep}{\vspace{4pt}\large\color{white}%
 \textbf{AI disclosure:} Claude (Anthropic) wrote the code and helped polish this write-up.
@@ -48,77 +45,71 @@ I directed the project --- the idea, the research into how other countries teach
 design decisions, and the conversation with my dad are mine.\vspace{4pt}}}
 \vspace{3pt}
 
+\noindent\colorbox{band}{\parbox{\dimexpr\textwidth-2\fboxsep}{\vspace{3pt}%
+\textbf{Live demo:} \url{https://homework-bridge-rho.vercel.app} \hfill
+\textbf{Code:} \url{https://github.com/Adarsh-Samanu/homework-bridge}\vspace{3pt}}}
+\vspace{4pt}
+
 \begin{multicols}{2}
 
-\section*{Who I built this for}
+\section*{The problem}
 
-My dad grew up in India. He learned all of this math there --- long division, subtraction with borrowing, all of it. He is good at it.
+My dad grew up in India and learned all of this math there --- long division, subtraction with borrowing. He is good at it. He speaks Telugu, and English is hard for him. I never learned enough Telugu for him to just explain it to me instead.
 
-He speaks Telugu. English is hard for him. And I never learned enough Telugu for him to just explain it to me in Telugu instead.
+So when I got stuck on a worksheet in elementary and middle school, this is what it looked like: I'd be sitting there with the paper, my dad right next to me, and he \emph{knew the answer} --- and there was no way for it to get from him to me. He couldn't read the sheet. I couldn't follow his explanation. One language apart, at the same table.
 
-So when I was in elementary school and middle school and got stuck on a math worksheet, this is what it looked like: I'd be sitting there with the paper, and my dad would be right there, and he \emph{knew the answer} --- and there was no way for it to get from him to me. He couldn't read the sheet. I couldn't follow his explanation. We were one language apart, at the same table.
+I asked him about it while building this. He said something like this would have really helped him back then --- he wanted to teach me the way he had learned it, and couldn't.
 
-I asked him about it while I was building this. He told me something like this would have really helped him back then --- he wanted to teach me the way he had learned it, and he couldn't.
+\textbf{And translating the worksheet would not have fixed us.} Hand him my homework in perfect Telugu and he still can't help, because it says things like \emph{``use a number bond to decompose the second number.''} There is no Telugu word for \textbf{number bond} --- not because it's a hard translation, but because the thing doesn't exist in what he learned. He was taught column subtraction with borrowing. He'd be staring at a diagram he had never seen, now in Telugu.
 
-I want to be clear about who is locked out here. \textbf{It was me.} But the person you have to build for is him, because he was holding the thing I needed.
+It isn't only vocabulary. \textbf{Long division sits somewhere else on the page} in Mexico, Vietnam, and Brazil. \textbf{\texttt{3,5} means three and a half} in most of Latin America, so a parent can read \texttt{3.5} as thirty-five and never find out. \textbf{\texttt{1,00,000} is one lakh} in India. \textbf{\texttt{187 r 1}} --- nothing says the \texttt{r} means remainder.
 
-\section*{Why translating it wouldn't have fixed us}
+TalkingPoints, ParentSquare, ClassDojo and Google Lens all translate school communication well. Every one would have left my dad exactly where he was.
 
-Imagine you handed my dad my worksheet, perfectly translated into Telugu. He still couldn't have helped me. Because the sheet said things like:
-
-\vspace{3pt}
-{\color{muted}\itshape ``Use a number bond to decompose the second number, then regroup from the tens place.''}
-\vspace{3pt}
-
-There is no Telugu word for \textbf{number bond}. Not because it's a hard translation --- because the thing itself doesn't exist in what he learned. It's an American way of teaching. He was taught column subtraction, the one where you cross out and borrow. Translate the sheet and he's just looking at a diagram he has never seen, now in Telugu. Same wall.
-
-And it isn't only the words:
-
-\begin{itemize}[leftmargin=11pt,itemsep=1.5pt,topsep=3pt]
-  \item \textbf{Long division sits somewhere else on the page} in Mexico, Vietnam, and Brazil --- divisor on the right, answer underneath. Same math, looks like a different subject.
-  \item \textbf{\texttt{3,5} means three and a half} in most of Latin America. A parent can read \texttt{3.5} as thirty-five and never find out.
-  \item \textbf{\texttt{1,00,000} is one lakh} in India. American comma placement looks like a mistake.
-  \item \textbf{\texttt{187 r 1}} --- that \texttt{r} means ``remainder.'' Nothing on the sheet says so.
-\end{itemize}
-
-TalkingPoints, ParentSquare, ClassDojo, Google Lens all translate school communication well. Every one would have left my dad exactly where he was.
-
-\section*{What it does}
+\section*{The solution}
 
 Photograph the worksheet or paste it in, pick your language and the country you went to school in. Then, in your language:
 
-\begin{enumerate}[leftmargin=13pt,itemsep=1.5pt,topsep=3pt]
-  \item \textbf{What the homework is actually asking} --- said plainly, not word-for-word
+\begin{enumerate}[leftmargin=13pt,itemsep=1pt,topsep=2pt]
+  \item \textbf{What the homework is actually asking} --- plainly, not word-for-word
   \item \textbf{The way the school wants it done}, step by step
-  \item \textbf{The same problem done the way \emph{you} were taught} $\leftarrow$ the part nothing else does
+  \item \textbf{The same problem done the way \emph{you} were taught} $\leftarrow$ nothing else does this
   \item \textbf{How the two line up}, and the one place they really differ
   \item \textbf{Notation warnings} --- the comma and decimal traps above
-  \item \textbf{Three questions to ask your kid} that check understanding without giving away the answer
+  \item \textbf{Three questions to ask your kid} that check understanding without giving the answer
 \end{enumerate}
 
-Worked examples always use \textbf{different numbers} than the real homework, so you can't copy them onto the sheet. That's deliberate: this helps a parent help, it doesn't do the homework.
+Worked examples always use \textbf{different numbers} than the real homework, so you can't copy them onto the sheet. This helps a parent help; it doesn't do the homework.
 
-\vspace{3pt}
-{\color{accent}\textbf{Try the third sample --- Telugu, India, number bonds.} That is my dad's exact situation, and the reason this exists.}
+\vspace{2pt}
+{\color{accent}\textbf{Try the third sample --- Telugu, India, number bonds.} That is my dad's exact situation.}
 
-\section*{How I built it}
+\section*{Tech stack}
 
-\textbf{The model couldn't be trusted to know how math is taught in other countries.} Asked directly, it gave vague, inconsistent answers. So we researched the real differences and wrote them down country by country in \texttt{lib/methods.ts}. Deciding that file had to exist is the call that makes this work.
+\textbf{Front end \& hosting.} Next.js 16 (App Router), React 19, TypeScript, deployed on Vercel. Read-aloud uses the browser's Web Speech API --- free and offline. No database, no accounts, nothing stored.
 
-\textbf{Then one model had to stop doing everything.} The first working version told a Telugu-speaking parent that $62-27=55$. Confidently. In the exact panel a parent is meant to trust. A homework helper that gets numbers wrong is worse than none at all --- now the parent looks wrong in front of their kid.
+\textbf{Models}, through Featherless AI's OpenAI-compatible API: \texttt{GLM-5.2} does all reasoning and writes the explanation in the parent's language; \texttt{Qwen3-VL} transcribes photos and is never allowed to solve anything. An Anthropic-SDK adapter is swappable via one environment variable. Every stage walks a fallback chain, because individual models go busy without warning.
 
-So we split the job: a vision model may only copy the worksheet down, and a stronger model (GLM-5.2) does all the thinking. And we added \texttt{eval/run.py}, which re-computes every equation the model writes and fails the run on any mismatch. The three demo worksheets pass --- 8, 16, and 8 equations checked, zero wrong.
+\textbf{The part that matters most is a data file.} Asked directly, the model gave vague and inconsistent answers about how other countries teach arithmetic. So we researched the real differences and wrote them down country by country in \texttt{lib/methods.ts}. Deciding that file had to exist is the call that makes the comparison trustworthy.
 
-\section*{Where it's honest about itself}
+\textbf{Correctness is machine-checked.} The first working version told a Telugu-speaking parent that $62-27=55$ --- confidently, in the panel a parent is meant to trust. A homework helper that gets numbers wrong is worse than none, because now the parent looks wrong in front of their kid. So reading and reasoning were split apart, and \texttt{eval/run.py} now re-computes every equation the model writes and fails the run on any mismatch. The three demo worksheets pass: 8, 16 and 8 equations checked, zero wrong.
 
-It works. The three samples are saved ahead of time so they're instant; anything else --- your own worksheet, an edited sample, another language --- runs live and takes one to three minutes while the big model wakes up. Handwritten worksheets are the shakiest part. All of that is in the README rather than hidden.
+\section*{What's next}
+
+\begin{itemize}[leftmargin=11pt,itemsep=1pt,topsep=2pt]
+  \item \textbf{More countries.} Six are covered. The Philippines, Haiti, Nigeria and Central America are the obvious gaps.
+  \item \textbf{Handwriting.} Printed worksheets read reliably; handwritten ones are the weakest part.
+  \item \textbf{Test with real families,} not just mine. One interview shaped this; ten would shape it better.
+  \item \textbf{Speed.} Answers take 8--20 seconds live. The demo worksheets are pre-rendered because of it.
+  \item \textbf{Beyond math} --- science and reading have their own untranslatable methods.
+\end{itemize}
 
 \end{multicols}
 
 \vspace{2pt}
 {\color{rule}\rule{\textwidth}{0.5pt}}
-\vspace{2pt}
+\vspace{1pt}
 
-\noindent{\small\color{muted}\textbf{Demo:} \underline{\hspace{2.2in}} \quad\textbullet\quad \textbf{Repo:} github.com/Adarsh-Samanu/homework-bridge \hfill Suvidha AI Virtual Hackathon 2026}
+\noindent{\small\color{muted}\textbf{Demo:} homework-bridge-rho.vercel.app \quad\textbullet\quad \textbf{Repo:} github.com/Adarsh-Samanu/homework-bridge \hfill Suvidha AI Virtual Hackathon 2026}
 
 \end{document}

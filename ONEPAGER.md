@@ -72,6 +72,7 @@ It works. The three sample worksheets are saved ahead of time so it's instant fo
 
 ---
 
-**Demo:** _(link)_ · **Repo:** github.com/Adarsh-Samanu/homework-bridge
+**Live demo:** https://homework-bridge-rho.vercel.app
+**Repo:** https://github.com/Adarsh-Samanu/homework-bridge
 
 *Built for the Suvidha International Foundation AI Virtual Hackathon 2026.*
