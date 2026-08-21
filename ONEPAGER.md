@@ -2,7 +2,7 @@
 
 ### My dad always knew how to do my math homework. He just couldn't get it to me.
 
-> **AI disclosure:** The story here is mine, and so is the conversation with my dad. I used Claude (Anthropic) to help me organize and polish the writing — the same assistant I disclose in the README for the code.
+> **AI disclosure:** Claude (Anthropic) wrote the code and helped polish this write-up. I directed the project — the idea, the research into how other countries teach math, the design decisions, and the conversation with my dad are mine.
 
 ---
 

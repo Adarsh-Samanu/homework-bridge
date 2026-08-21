@@ -43,9 +43,9 @@
 \vspace{3pt}
 
 \noindent\colorbox{accent}{\parbox{\dimexpr\textwidth-2\fboxsep}{\vspace{4pt}\large\color{white}%
-\textbf{AI disclosure:} The story and the conversation with my dad are mine. I used Claude
-(Anthropic) to help organize and polish the writing --- the same assistant disclosed in the
-README for the code.\vspace{4pt}}}
+\textbf{AI disclosure:} Claude (Anthropic) wrote the code and helped polish this write-up.
+I directed the project --- the idea, the research into how other countries teach math, the
+design decisions, and the conversation with my dad are mine.\vspace{4pt}}}
 \vspace{3pt}
 
 \begin{multicols}{2}
@@ -103,11 +103,11 @@ Worked examples always use \textbf{different numbers} than the real homework, so
 
 \section*{How I built it}
 
-\textbf{I had to look up how math is actually taught in other countries.} Asking the model gave vague, inconsistent answers, so I wrote the real differences down myself, country by country, in \texttt{lib/methods.ts}. That file is the heart of this.
+\textbf{The model couldn't be trusted to know how math is taught in other countries.} Asked directly, it gave vague, inconsistent answers. So we researched the real differences and wrote them down country by country in \texttt{lib/methods.ts}. Deciding that file had to exist is the call that makes this work.
 
-\textbf{Then I had to stop letting one model do everything.} My first working version told a Telugu-speaking parent that $62-27=55$. Confidently. In the exact panel a parent is meant to trust. A homework helper that gets numbers wrong is worse than none at all --- now the parent looks wrong in front of their kid.
+\textbf{Then one model had to stop doing everything.} The first working version told a Telugu-speaking parent that $62-27=55$. Confidently. In the exact panel a parent is meant to trust. A homework helper that gets numbers wrong is worse than none at all --- now the parent looks wrong in front of their kid.
 
-So I split the job: a vision model may only copy the worksheet down, and a stronger model (GLM-5.2) does all the thinking. Then I wrote \texttt{eval/run.py}, which re-computes every equation the model writes and fails the run on any mismatch. The three demo worksheets pass --- 8, 16, and 8 equations checked, zero wrong.
+So we split the job: a vision model may only copy the worksheet down, and a stronger model (GLM-5.2) does all the thinking. And we added \texttt{eval/run.py}, which re-computes every equation the model writes and fails the run on any mismatch. The three demo worksheets pass --- 8, 16, and 8 equations checked, zero wrong.
 
 \section*{Where it's honest about itself}
 

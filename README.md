@@ -176,7 +176,7 @@ Switching providers is one environment variable. Both paths satisfy the same JSO
 ## Required disclosures (§08)
 
 **AI tools used to build this project:**
-- **Claude Opus 5** (Anthropic), via **Claude Code** — used as a coding assistant for essentially all application code, and for research and drafting of the country method profiles. All method claims were reviewed before inclusion.
+- **Claude Opus 5** (Anthropic), via **Claude Code** — wrote essentially all of the application code, researched and drafted the country method profiles in `lib/methods.ts`, and helped write the README and one-pager. I directed the project throughout: the idea, the product decisions (the method-bridge framing, splitting reading from reasoning, pre-rendering the demo worksheets), the choice of provider and models, the interview with my father, testing, and deployment.
 
 **Models the application calls at runtime:**
 - **Featherless AI** (default provider), OpenAI-compatible:
